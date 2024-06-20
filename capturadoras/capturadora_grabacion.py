@@ -1,5 +1,66 @@
 from capturadoras.capturadora_utils import *
 
+def on_move(x, y):
+    global mouse_coords,exit_event
+    mouse_coords['x'] = x
+    mouse_coords['y'] = y
+    # Establecer el evento para salir del bucle
+    exit_event.set()
+
+def on_key_press(key):
+    global keys_pressed
+    try:
+        if key.char in ['w', 'a', 's', 'd']:
+            keys_pressed.add(key.char)
+            check_combinations()
+    except AttributeError:
+        pass
+
+def on_key_release(key):
+    global keys_pressed
+    try:
+        if key.char in ['w', 'a', 's', 'd']:
+            keys_pressed.discard(key.char)
+    except AttributeError:
+        pass
+
+def check_combinations():
+    global keys_number
+
+    if 'w' in keys_pressed:
+        keys_number = 1
+        # print("Key w pressed")
+    elif 'a' in keys_pressed:
+        keys_number = 2
+        # print("Key a pressed")
+    elif 's' in keys_pressed:
+        keys_number = 3
+        # print("Key s pressed")
+    elif 'd' in keys_pressed:
+        keys_number = 4
+        # print("Key d pressed")  
+    elif 'w' in keys_pressed and 'a' in keys_pressed:
+        keys_number = 5
+        # print("Combination wa pressed")
+    elif 'w' in keys_pressed and 'd' in keys_pressed:
+        keys_number = 6
+        # print("Combination wd pressed")
+    elif 's' in keys_pressed and 'a' in keys_pressed:
+        keys_number = 7
+        # print("Combination sa pressed")
+    elif 's' in keys_pressed and 'd' in keys_pressed:
+        keys_number = 8
+        # print("Combination sd pressed")
+
+def mouse_listener():
+    # Listener para el movimiento del mouse
+    with Listener(on_move=on_move) as listener:
+        listener.join()
+
+def keyboard_listener():
+    with KeyboardListener(on_press=on_key_press, on_release=on_key_release) as listener:
+        listener.join()
+
 def modo_grabacion_movimientos():
 
     time.sleep(5)       #Esperamos unos segundos hasta que empiece la partida

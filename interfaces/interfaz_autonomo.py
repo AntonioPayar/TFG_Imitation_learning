@@ -54,9 +54,8 @@ def mostrar_imagenes_01(lista,frame,size):
     # Asignar referencias de imagen al frame para evitar recolección de basura
     frame.image_refs = referencias_imagenes
 
-def pulsar_boton():
-    # Cambiar el color de fondo del botón
-    if boton["bg"] == "red":
+def pulsar_boton(bool):
+    if bool == False:
         boton.config(bg="blue")
         boton.config(text="🤖 Automatico 🤖")
     else:
@@ -94,10 +93,19 @@ def check_queue():
     global cola_imagenes_map
     global cola_imagenes_pov
     global root
+    global cola_deteccion_raton , cola_deteccion_teclado
+
     try:
         # Intentar obtener una lista de imágenes de la cola
+        # detec_raton = cola_deteccion_raton.get_nowait()
+        # detec_teclado = cola_deteccion_teclado.get_nowait()
         lista_imagenes_map = cola_imagenes_map.get_nowait()
         lista_imagenes_pov = cola_imagenes_pov.get_nowait()
+
+
+        #Comprobamos si el usuario paso a manual y cambiamos el letrero
+        # if detec_raton == True or detec_teclado == True:
+        #     pulsar_boton(True)
      
         mostrar_imagenes_01(lista_imagenes_map,frame,(150,110))
         mostrar_imagenes_01(lista_imagenes_pov,frame02,(260,150))
@@ -144,7 +152,7 @@ def interfaz_autonomo():
     frame03 = tk.Frame(root)
     frame03.pack(pady=20)
     
-    boton = tk.Button(frame03, text="", command=pulsar_boton , font=("Arial", 16) ,width=120, height=7, bg="white" ,fg="white")
+    boton = tk.Button(frame03, text="" , font=("Arial", 16) ,width=120, height=7, bg="white" ,fg="white")
     boton.pack()
 
     # Label de Texto
