@@ -2,7 +2,7 @@ import comun_file
 from interfaces import interfaz_seleccion_ventana
 from interfaces import interfaz_grabacion
 from interfaces import interfaz_autonomo
-from capturadoras import capturadora_completa
+from capturadoras import capturadora_autonoma , capturadora_grabacion
 
 import pandas as pd
 import pygetwindow as gw
@@ -26,10 +26,10 @@ if __name__ == '__main__':
 
     if opcion_elegida == 0:
         ineterfaz = interfaz_grabacion.interfaz_grabacion               #Otro hilo para la interfaz
-        funcion_elegida = capturadora_completa.modo_grabacion_movimientos
+        funcion_elegida = capturadora_grabacion.modo_grabacion_movimientos
     else : 
         ineterfaz = interfaz_autonomo.interfaz_autonomo                  #Otro hilo para la interfaz
-        funcion_elegida = capturadora_completa.modo_autonomo_moviminetos
+        funcion_elegida = capturadora_autonoma.modo_autonomo_moviminetos
 
     imagen_thread = threading.Thread(target=funcion_elegida)        #Un hilo para la capturadora
     imagen_thread.daemon = True 
