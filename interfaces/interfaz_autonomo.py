@@ -24,6 +24,8 @@ scrollbar = None
 texto_label_contador = None
 cuenta_atras_label = None
 
+anterior_movimiento_registrado = None
+
 def iniciar_cuenta_atras(segundos):
     global texto_label_contador
     global cuenta_atras_label
@@ -93,19 +95,24 @@ def check_queue():
     global cola_imagenes_map
     global cola_imagenes_pov
     global root
-    global cola_deteccion_raton , cola_deteccion_teclado
+    global anterior_movimiento_registrado
 
     try:
-        # Intentar obtener una lista de imágenes de la cola
-        # detec_raton = cola_deteccion_raton.get_nowait()
-        # detec_teclado = cola_deteccion_teclado.get_nowait()
+        # Obtener una lista de imágenes de la cola y movimientos
         lista_imagenes_map = cola_imagenes_map.get_nowait()
         lista_imagenes_pov = cola_imagenes_pov.get_nowait()
+        mov_raton = cola_mov_raton.get_nowait()
 
+        #Para que guarde la primera posicion registrada
+        if mov_raton == None:
+            anterior_movimiento_registrado = mov_raton
+            #Comprobamos si el usuario paso a manual y cambiamos el letrero
+        elif mov_raton != anterior_movimiento_registrado:
+            anterior_movimiento_registrado = mov_raton
+            pulsar_boton(True)
+        elif mov_raton == anterior_movimiento_registrado:
+            pulsar_boton(False)            
 
-        #Comprobamos si el usuario paso a manual y cambiamos el letrero
-        # if detec_raton == True or detec_teclado == True:
-        #     pulsar_boton(True)
      
         mostrar_imagenes_01(lista_imagenes_map,frame,(150,110))
         mostrar_imagenes_01(lista_imagenes_pov,frame02,(260,150))

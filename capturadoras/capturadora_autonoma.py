@@ -1,90 +1,9 @@
 from capturadoras.capturadora_utils import *
 
 
-deteccion_teclado = False
-deteccion_raton = False
-
-def on_move(x, y):
-    global mouse_coords,exit_event
-    global deteccion_raton
-
-    deteccion_raton = True
-    comun_file.cola_deteccion_raton.put(deteccion_raton)    #Enviamos la actividad del usuario a la interfaz grafica
-
-    mouse_coords['x'] = x
-    mouse_coords['y'] = y
-    # Establecer el evento para salir del bucle
-    exit_event.set()
-
-def on_key_press(key):
-    global keys_pressed
-    global deteccion_teclado
-
-    deteccion_teclado = True
-    comun_file.cola_deteccion_teclado.put(deteccion_teclado)    #Enviamos la actividad del usuario a la interfaz grafica
-    try:
-        if key.char in ['w', 'a', 's', 'd']:
-            keys_pressed.add(key.char)
-            check_combinations()
-    except AttributeError:
-        pass
-
-def on_key_release(key):
-    global keys_pressed
-    global deteccion_teclado
-
-    deteccion_teclado = False
-    comun_file.cola_deteccion_teclado.put(deteccion_teclado)    #Enviamos la actividad del usuario a la interfaz grafica
-    try:
-        if key.char in ['w', 'a', 's', 'd']:
-            keys_pressed.discard(key.char)
-    except AttributeError:
-        pass
-
-def check_combinations():
-    global keys_number
-
-    if 'w' in keys_pressed:
-        keys_number = 1  
-    elif 'a' in keys_pressed:
-        keys_number = 2
-    elif 's' in keys_pressed:
-        keys_number = 3 
-    elif 'd' in keys_pressed:
-        keys_number = 4  
-    elif 'w' in keys_pressed and 'a' in keys_pressed:
-        keys_number = 5
-    elif 'w' in keys_pressed and 'd' in keys_pressed:
-        keys_number = 6 
-    elif 's' in keys_pressed and 'a' in keys_pressed:
-        keys_number = 7
-    elif 's' in keys_pressed and 'd' in keys_pressed:
-        keys_number = 8
-
-def mouse_listener():
-    # Listener para el movimiento del mouse
-    with Listener(on_move=on_move) as listener:
-        listener.join()
-
-def keyboard_listener():
-    with KeyboardListener(on_press=on_key_press, on_release=on_key_release) as listener:
-        listener.join()
-
-
 def modo_autonomo_moviminetos():
-    global deteccion_raton
 
     time.sleep(5)       #Esperamos unos segundos hasta que empiece la partida
-
-    # Crear y comenzar un nuevo hilo para el listener
-    mouse_thread = threading.Thread(target=mouse_listener)
-    keyboard_thread  = threading.Thread(target=keyboard_listener)
-
-    mouse_thread.start()
-    keyboard_thread.start()
-    # Esperar hasta que se establezca el evento para salir del bucle
-    exit_event.wait()
-    deteccion_raton = False
 
     # Asegúrate de que la ventana esté visible
     if comun_file.cod_window.isMinimized:
@@ -120,8 +39,11 @@ def modo_autonomo_moviminetos():
         if i < 4:
             i = i + 1
         else:
+            moviminento = detector_movimiento()
             comun_file.cola_imagenes_map.put(lista_img_mini)
             comun_file.cola_imagenes_pov.put(lista_img_pov)
+            comun_file.cola_mov_raton.put(moviminento)    #Enviamos la actividad del usuario a la interfaz grafica
+            
             i = 0
             lista_img_mini = [None, None,None, None,None]
             lista_img_pov = [None, None,None, None,None]
@@ -132,3 +54,22 @@ def modo_autonomo_moviminetos():
         # Salir del bucle si se presiona el boton finalizar
         if comun_file.get_Finalizacion == True:
             break
+
+def detector_movimiento():
+    global exit_event
+    global keys_number
+
+    # Crear y comenzar un nuevo hilo para el listener
+    mouse_thread = threading.Thread(target=mouse_listener)
+    keyboard_thread  = threading.Thread(target=keyboard_listener)
+
+    mouse_thread.start()
+    keyboard_thread.start()
+
+    # Esperar hasta que se establezca el evento para salir del bucle
+    exit_event.wait()
+
+    moviminento = [int(keys_number),int(mouse_coords["x"]),int(mouse_coords["y"])]
+    keys_number = 0
+
+    return moviminento

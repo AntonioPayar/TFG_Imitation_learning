@@ -18,7 +18,4 @@ get_Finalizacion = False
 # Cola para comunicación entre hilos
 cola_imagenes_map = queue.Queue()
 cola_imagenes_pov = queue.Queue()
-cola_mov_raton = queue.Queue()
-
-cola_deteccion_raton = queue.Queue()
-cola_deteccion_teclado = queue.Queue()
+cola_mov_raton = queue.Queue()  #Grabacion

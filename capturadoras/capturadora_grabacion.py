@@ -1,65 +1,5 @@
 from capturadoras.capturadora_utils import *
 
-def on_move(x, y):
-    global mouse_coords,exit_event
-    mouse_coords['x'] = x
-    mouse_coords['y'] = y
-    # Establecer el evento para salir del bucle
-    exit_event.set()
-
-def on_key_press(key):
-    global keys_pressed
-    try:
-        if key.char in ['w', 'a', 's', 'd']:
-            keys_pressed.add(key.char)
-            check_combinations()
-    except AttributeError:
-        pass
-
-def on_key_release(key):
-    global keys_pressed
-    try:
-        if key.char in ['w', 'a', 's', 'd']:
-            keys_pressed.discard(key.char)
-    except AttributeError:
-        pass
-
-def check_combinations():
-    global keys_number
-
-    if 'w' in keys_pressed:
-        keys_number = 1
-        # print("Key w pressed")
-    elif 'a' in keys_pressed:
-        keys_number = 2
-        # print("Key a pressed")
-    elif 's' in keys_pressed:
-        keys_number = 3
-        # print("Key s pressed")
-    elif 'd' in keys_pressed:
-        keys_number = 4
-        # print("Key d pressed")  
-    elif 'w' in keys_pressed and 'a' in keys_pressed:
-        keys_number = 5
-        # print("Combination wa pressed")
-    elif 'w' in keys_pressed and 'd' in keys_pressed:
-        keys_number = 6
-        # print("Combination wd pressed")
-    elif 's' in keys_pressed and 'a' in keys_pressed:
-        keys_number = 7
-        # print("Combination sa pressed")
-    elif 's' in keys_pressed and 'd' in keys_pressed:
-        keys_number = 8
-        # print("Combination sd pressed")
-
-def mouse_listener():
-    # Listener para el movimiento del mouse
-    with Listener(on_move=on_move) as listener:
-        listener.join()
-
-def keyboard_listener():
-    with KeyboardListener(on_press=on_key_press, on_release=on_key_release) as listener:
-        listener.join()
 
 def modo_grabacion_movimientos():
 
@@ -104,12 +44,12 @@ def modo_grabacion_movimientos():
             i = i + 1
         else:
             #-----------Almacenamos las img y csv
-            mouse_final= modo_grabacion_almacenar_informacion(lista_url_img_mini,lista_url_img_pov)
+            moviminento= modo_grabacion_almacenar_informacion(lista_url_img_mini,lista_url_img_pov)
 
             #Enviamos las imagenes a la interfaz grafica
             comun_file.cola_imagenes_map.put(lista_img_mini)
             comun_file.cola_imagenes_pov.put(lista_img_pov)
-            comun_file.cola_mov_raton.put(mouse_final)
+            comun_file.cola_mov_raton.put(moviminento)
 
             i = 0
             lista_img_mini = [None, None,None, None,None]
@@ -138,14 +78,13 @@ def modo_grabacion_almacenar_informacion(img_mini,img_pov):
 
     # print(f'Las coordenadas finales del mouse son ({mouse_coords["x"]}, {mouse_coords["y"]})')
 
-    mouse_final = [int(keys_number),int(mouse_coords["x"]),int(mouse_coords["y"])]
-
+    moviminento = [int(keys_number),int(mouse_coords["x"]),int(mouse_coords["y"])]
     keys_number = 0
 
     # Crear DataFrames para cada matriz
-    row ={'mini_01': img_mini[0], 'mini_02': img_mini[1], 'mini_03': img_mini[2], 'mini_04': img_mini[3],'mini_05': img_mini[4], 'mouse_final':mouse_final}
-    row_pov = {'pov_01': img_pov[0], 'pov_02': img_pov[1], 'pov_03': img_pov[2], 'pov_04': img_pov[3],'pov_05': img_pov[4], 'mouse_final':mouse_final}
+    row ={'mini_01': img_mini[0], 'mini_02': img_mini[1], 'mini_03': img_mini[2], 'mini_04': img_mini[3],'mini_05': img_mini[4], 'mouse_final':moviminento}
+    row_pov = {'pov_01': img_pov[0], 'pov_02': img_pov[1], 'pov_03': img_pov[2], 'pov_04': img_pov[3],'pov_05': img_pov[4], 'mouse_final':moviminento}
 
     # guardar_csv(row,row_pov)
     
-    return mouse_final
+    return moviminento
