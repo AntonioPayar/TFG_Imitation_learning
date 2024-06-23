@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk ,ImageGrab
-import pygetwindow as gw
 import queue
 
 from comun_file import  *

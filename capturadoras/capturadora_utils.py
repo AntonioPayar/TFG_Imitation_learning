@@ -1,13 +1,17 @@
 import numpy as np
 import pandas as pd
 import cv2
-from pynput.mouse import Listener
+import mss
+from pynput.mouse import Listener as MouseListener
 from pynput.keyboard import Listener as KeyboardListener, Key
+#import pyautogui
+#from pynput.mouse import Listener
+#from pynput.keyboard import Listener as KeyboardListener, Key
 import threading
 from datetime import datetime
 import os
 import time
-from PIL import ImageGrab
+from PIL import ImageGrab , Image ,UnidentifiedImageError
 import queue
 
 import comun_file
@@ -17,6 +21,7 @@ exit_event = threading.Event()
 mouse_coords = {'x': None, 'y': None}
 keys_pressed = set()
 keys_number = 0
+
 
 def on_move(x, y):
     global mouse_coords,exit_event
@@ -62,14 +67,15 @@ def check_combinations():
     elif 's' in keys_pressed and 'd' in keys_pressed:
         keys_number = 8
 
-def mouse_listener():
-    # Listener para el movimiento del mouse
-    with Listener(on_move=on_move) as listener:
-        listener.join()
-
-def keyboard_listener():
-    with KeyboardListener(on_press=on_key_press, on_release=on_key_release) as listener:
-        listener.join()
+def mouse_and_keyboard_listener():
+    global exit_event
+    # Listener para el movimiento del mouse y las pulsaciones de teclas
+    with MouseListener(on_move=on_move) as mouse_listener, \
+         KeyboardListener(on_press=on_key_press) as keyboard_listener:
+        
+        # Unificar los eventos de salida de ambos listeners
+        while not exit_event.is_set():
+            exit_event.wait(timeout=0.1)  # Esperar hasta que se establezca el evento para salir del bucle
 
 def zoom_frame_minimapa(frame,zoom_factor):
 
@@ -90,29 +96,59 @@ def zoom_frame_minimapa(frame,zoom_factor):
 
     return cropped_frame
 
+
 def cargar_pantalla():
-    # Obtiene las coordenadas de la ventana
-    left, top, right, bottom = comun_file.cod_window.left, comun_file.cod_window.top, comun_file.cod_window.right, comun_file.cod_window.bottom
+    global id_ventana, display_obj, root, window, geometry
+    img_mini_mapa = None
+    img_pov = None
+
+    with mss.mss() as sct:
+        try:
+            # Captura el monitor donde esta el juego
+            sct_img = sct.grab(sct.monitors[comun_file.cod_window])
+            
+            # Convertir la captura en una imagen de PIL
+            screenshot = Image.frombytes("RGB", (sct_img.width, sct_img.height), sct_img.rgb)
+            
+            #Convertimos a np
+            img_np = np.array(screenshot)
+            img_np = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+
+            img_mini_mapa = procesar_frames_minimapa(img_np)
+
+            img_mini_mapa = cv2.resize(img_mini_mapa, (135, 93))
+            img_pov = cv2.resize(img_np, (320, 180))
+
+        except Exception as e:
+            print(f"Error general en el intento : {e}")
+            time.sleep(1)  # Esperar antes de volver a intentar
+        finally:
+            sct.close()  # Asegurarse de liberar la conexión al finalizar
+
+        return img_mini_mapa, img_pov
+
+'''
+def cargar_pantalla():
+
+    try :
+        screenshot = pyautogui.screenshot()
+        #Convertimos a np
+        img_np = np.array(screenshot)
+        img_np = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+
+        img_mini_mapa = procesar_frames_minimapa(img_np)
+
+        img_mini_mapa = cv2.resize(img_mini_mapa, (268, 183))
+        img_pov = cv2.resize(img_np, (1280, 720))
+
+        return img_mini_mapa, img_pov
     
-    # Ajustar las coordenadas
-    top = top + 24
-    bottom = bottom - 100
-
-    # Captura la pantalla en las coordenadas de la ventana
-    screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
-
-    # Convierte la imagen a un array de numpy
-    img_np = np.array(screenshot)
-    img_np = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
-
-    img_mini_mapa = procesar_frames_minimapa(img_np)
-
-    # Redimensiona la ventana minimapa
-    img_mini_mapa = cv2.resize(img_mini_mapa, (268, 183))
-    # Redimensiona la ventana pov
-    img_pov = cv2.resize(img_np, (1280, 720))
-
-    return img_mini_mapa , img_pov
+    except UnidentifiedImageError as e:
+        print(f"Error al capturar la pantalla: {e}")
+        img_mini_mapa = np.empty(shape=(268, 183,3), dtype=np.float64)
+        img_pov = np.empty(shape=(1280, 720, 3), dtype=np.float64)
+        return img_mini_mapa, img_pov
+'''
 
 def procesar_frames_minimapa(img_np):
     

@@ -3,7 +3,6 @@ from tkinter import ttk
 import cv2
 from pynput.mouse import Listener
 import threading
-import pygetwindow as gw
 from PIL import ImageGrab , Image, ImageTk 
 import queue
 

@@ -5,10 +5,16 @@ from interfaces import interfaz_autonomo
 from capturadoras import capturadora_autonoma , capturadora_grabacion
 
 import pandas as pd
-import pygetwindow as gw
 import threading
 
 
+#Utilizar entorno
+#source ../entorno_TFG/bin/activate
+
+#---Reiniciar XServer
+#sudo systemctl restart display-manager.service
+#---Mostrar clientes XServer
+#xlsclients
 if __name__ == '__main__':
 
     comun_file.DF_mini = pd.DataFrame(columns=['mini_01','mini_02','mini_03','mini_04','mini_05','mouse_final'])
@@ -16,8 +22,8 @@ if __name__ == '__main__':
 
 
     try:
-        ventana , opcion_elegida = interfaz_seleccion_ventana.interfaz_selccion_ventana()
-        comun_file.cod_window = gw.getWindowsWithTitle(ventana)[0]
+        monitor , opcion_elegida = interfaz_seleccion_ventana.interfaz_selccion_ventana()
+        comun_file.cod_window = monitor
     except IndexError:
         print(" 😡 Abra desde Steam Call of Duty® para poder empezar 😡")
         print(" 🥸 Corre el Juego en 1920x1080 🥸 ")

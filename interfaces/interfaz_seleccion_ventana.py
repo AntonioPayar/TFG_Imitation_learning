@@ -1,5 +1,5 @@
 import tkinter as tk
-import pygetwindow as gw
+from Xlib import display
 
 listbox = None
 scrollbar = None
@@ -21,13 +21,14 @@ def list_box_ventanas_abiertas():
     scrollbar.config(command=listbox.yview)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     listbox.config(yscrollcommand=scrollbar.set)
-    
-    windows = gw.getAllTitles()     #   Obtener todas las ventanas abiertas
-    windows = [window for window in windows if window]  # Filtrar ventanas sin título
 
-    # Añadir las ventanas al Listbox
-    for window in windows:
-        listbox.insert(tk.END, window)
+
+
+    for i in range(1, 1+2):
+        listbox.insert(tk.END, i)     #Añadimos el monitor a la interfaz
+    
+    #display.flush() # Llamar a flush para asegurar que todas las operaciones pendientes se completen
+    #display.close()
     
     # Asignar la función de doble clic al Listbox
     listbox.bind("<Double-1>", on_double_click)
@@ -94,3 +95,6 @@ def interfaz_selccion_ventana():
     root.mainloop()
 
     return ventana , opcion_elegida
+
+#if __name__ == '__main__':
+#    interfaz_selccion_ventana()

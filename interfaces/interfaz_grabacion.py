@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk ,ImageGrab
 import queue
-import pygetwindow as gw
-import queue
 
 from comun_file import  *
 
@@ -14,10 +12,29 @@ frame02 = None
 frame03 = None
 frame04 = None
 label = None
+label_clientes_serverX = None
 boton02 = None
 
 texto_label_contador = None
 cuenta_atras_label = None
+
+import subprocess
+
+def clientes_X():
+    # Comando a ejecutar
+    comando = "xlsclients | wc -l"
+
+    # Ejecutar el comando y capturar la salida
+    resultado = subprocess.run(comando, shell=True, capture_output=True, text=True)
+
+    # Verificar si la ejecución fue exitosa
+    if resultado.returncode == 0:
+        # Imprimir el resultado obtenido
+        return str(resultado.stdout.strip())
+        #print(f"Número de clientes conectados: {resultado.stdout.strip()}")
+    else:
+        # Manejar el caso de error si es necesario
+        print(f"Error al ejecutar el comando: {resultado.stderr}")
 
 def iniciar_cuenta_atras(segundos):
     global texto_label_contador
@@ -58,16 +75,18 @@ def finalizar_gr():
 def check_queue_gr():
     global cola_imagenes_map
     global cola_imagenes_pov
-    global root ,frame ,frame02 ,label
+    global root ,frame ,frame02 ,label ,label_clientes_serverX
     try:
         # Intentar obtener una lista de imágenes de la cola
         lista_imagenes_map = cola_imagenes_map.get_nowait()
         lista_imagenes_pov = cola_imagenes_pov.get_nowait()
         mov_raton = cola_mov_raton.get_nowait()
+        n_clientes = "Nº clientes servidorX : "+ clientes_X()+"/23"
      
         mostrar_imagenes_gr(lista_imagenes_map,frame,(150,110))
         mostrar_imagenes_gr(lista_imagenes_pov,frame02,(260,150))
         label.config(text=str(mov_raton))
+        label_clientes_serverX.config(text=str(n_clientes))
     except queue.Empty:
         pass
     # Volver a comprobar la cola después de un corto intervalo
@@ -79,7 +98,7 @@ def interfaz_grabacion():
     global frame02
     global frame03
     global frame04
-    global label
+    global label , label_clientes_serverX
     global boton02
     global texto_label_contador
     global cuenta_atras_label
@@ -109,6 +128,9 @@ def interfaz_grabacion():
     frame03.pack(pady=20)
     label = tk.Label(frame03, text="", font=("Arial", 18), bg="yellow", fg="blue")
     label.pack(pady=20)
+
+    label_clientes_serverX = tk.Label(frame03, text="", font=("Arial", 18), bg="orange", fg="blue")
+    label_clientes_serverX.pack(pady=20)
 
     # Crear un marco Finalizado  
     frame04 = tk.Frame(root)
