@@ -5,6 +5,7 @@ from interfaces import interfaz_autonomo
 from capturadoras import capturadora_autonoma , capturadora_grabacion
 
 import pandas as pd
+import os
 import threading
 
 
@@ -19,8 +20,7 @@ if __name__ == '__main__':
 
     comun_file.DF_mini = pd.DataFrame(columns=['mini_01','mini_02','mini_03','mini_04','mini_05','mouse_final'])
     comun_file.DF_pov = pd.DataFrame(columns=['pov_01','pov_02','pov_03','pov_04','pov_05','mouse_final'])
-
-
+    
     try:
         monitor , opcion_elegida = interfaz_seleccion_ventana.interfaz_selccion_ventana()
         comun_file.cod_window = monitor
@@ -28,6 +28,7 @@ if __name__ == '__main__':
         print(" 😡 Abra desde Steam Call of Duty® para poder empezar 😡")
         print(" 🥸 Corre el Juego en 1920x1080 🥸 ")
         print(" 🥸 Corre el Juego en Ventana (P.Completa) 🥸 ")
+        print(" 🥸 Tener Juego en la pantalla de la derecha 🥸 ")
         print(" 🤖 El programa no para que correr hasta que des a la q en las ventanas emergentes 🤖 ")
 
     if opcion_elegida == 0:
@@ -42,3 +43,17 @@ if __name__ == '__main__':
     imagen_thread.start()
 
     ineterfaz()     #Llamamos a la funcion
+
+    #Eliminanos las ultimas 3 filas del csv para evitar ruido del menu
+    csv_mini = 'datos/datos_bo3_minimapa.csv'
+    csv_pov = 'datos/datos_bo3_pov.csv'
+
+    if os.path.isfile(csv_mini) and os.path.isfile(csv_pov):
+        # Eliminar las últimas 3 filas
+        comun_file.DF_mini = comun_file.DF_mini[:-3]
+        comun_file.DF_pov = comun_file.DF_pov[:-3]
+
+        #Guardamos el archivo
+        comun_file.DF_mini.to_csv(csv_mini, index=False)
+        comun_file.DF_pov.to_csv(csv_pov, index=False)
+        print("Archivos guardados...")

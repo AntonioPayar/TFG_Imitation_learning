@@ -1,8 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-import cv2
-from pynput import mouse
-import threading
 from PIL import ImageGrab , Image, ImageTk 
 import queue
 from Xlib import X, display
@@ -22,32 +19,6 @@ get_Finalizacion = False
 cola_imagenes_map = queue.Queue()
 cola_imagenes_pov = queue.Queue()
 cola_mov_raton = queue.Queue()  #Grabacion
-
-mouse_coords = {'x': None, 'y': None}
-keys_pressed = set()
-keys_number = 0
-
-# Clase captura el movimineto del Raton instanciando un nuevo hilo
-class MouseMoveDetector(threading.Thread):
-    def __init__(self):
-        super().__init__()
-        self.running = True
-        self.mouse_coords = {'x': None, 'y': None}
-        self.keys_number = 0
-        self.listener = mouse.Listener(on_move=self.on_move)
-
-    def on_move(self, x, y):
-        self.mouse_coords['x'] = x
-        self.mouse_coords['y'] = y
-        self.running = False
-        self.listener.stop()  # Detener el listener
-
-    def run(self):
-        self.listener.start()
-        while self.running:
-            pass  # Mantener el hilo vivo mientras `self.running` sea True
-
-
 
 
 # Función para presionar teclas 'W' y 'Shift_L' usando Xlib

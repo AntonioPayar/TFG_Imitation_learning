@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk ,ImageGrab
 import queue
-import os
 
 from comun_file import  *
 
@@ -70,18 +69,6 @@ def mostrar_imagenes_gr(lista,frame,size):
 
 def finalizar_gr():
     global root
-
-    #Eliminanos las ultimas 3 filas del csv para evitar ruido del menu
-    csv_mini = 'datos/datos_bo3_minimapa.csv'
-    csv_pov = 'datos/datos_bo3_pov.csv'
-    if os.path.isfile(csv_mini) and os.path.isfile(csv_pov):
-        # Eliminar las últimas 3 filas
-        DF_mini = DF_mini[:-5]
-        DF_pov = DF_pov[:-5]
-
-        #Guardamos el archivo
-        DF_mini.to_csv(csv_mini, index=False)
-        DF_pov.to_csv(csv_pov, index=False)
 
     root.destroy()  # Cerrar la ventana principal
 

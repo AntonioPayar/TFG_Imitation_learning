@@ -1,40 +1,42 @@
+from pynput import mouse
+import time
 import threading
-from pynput import mouse, keyboard
 
 class MouseMoveDetector(threading.Thread):
     def __init__(self):
         super().__init__()
-        self.running = True
-        self.mouse_listener = mouse.Listener(on_move=self.on_move)
-        self.keyboard_listener = keyboard.Listener(on_press=self.on_press)
-        self.current_key = None
+        self.current_position = (0, 0)
+        self.total_displacement = (0, 0)
+        self.lock = threading.Lock()
+        self.listener = mouse.Listener(on_move=self.on_move)
 
     def on_move(self, x, y):
-        print(f"Movimiento detectado en: ({x}, {y})")
-        if self.current_key:
-            print(f"Tecla presionada: {self.current_key}")
-        self.running = False
-        self.mouse_listener.stop()  # Detener el listener del ratón
-        self.keyboard_listener.stop()  # Detener el listener del teclado
-
-    def on_press(self, key):
-        try:
-            if key.char in ['w', 'a', 's', 'd']:
-                self.current_key = key.char
-        except AttributeError:
-            pass
+        with self.lock:
+            # Calcular el desplazamiento
+            dx = x - self.current_position[0]
+            dy = y - self.current_position[1]
+            # Actualizar la posición actual y el desplazamiento total
+            self.current_position = (x, y)
+            self.total_displacement = (self.total_displacement[0] + dx, self.total_displacement[1] + dy)
 
     def run(self):
-        self.mouse_listener.start()
-        self.keyboard_listener.start()
-        while self.running:
-            pass  # Mantener el hilo vivo mientras `self.running` sea True
+        self.listener.start()
+        self.listener.join()
 
-while True:
-    # Crear y empezar el hilo
+    def capture_displacement(self, interval=1):
+        time.sleep(interval)  # Espera durante el intervalo especificado
+        movimiento = [None,None]
+        with self.lock:
+            dx, dy = self.total_displacement
+            movimiento = [int(dx),int(dy)]
+            # Resetear el desplazamiento para el próximo intervalo
+            self.total_displacement = (0, 0)
+        self.listener.stop()  # Detener el listener después de capturar el desplazamiento
+        print(movimiento)
+        return movimiento
+
+# Ejemplo de uso
+if __name__ == "__main__":
     detector = MouseMoveDetector()
     detector.start()
-
-    # Esperar a que el hilo termine
-    detector.join()
-
+    detector.capture_displacement()
