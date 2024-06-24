@@ -12,13 +12,6 @@ def modo_autonomo_moviminetos():
 
     time.sleep(5)       #Esperamos unos segundos hasta que empiece la partida
 
-    # Asegúrate de que la ventana esté visible
-    if comun_file.cod_window.isMinimized:
-        comun_file.cod_window.restore()
-
-    # Trae la ventana al frente
-    comun_file.cod_window.activate()
-
     lista_url_img_mini = [None, None,None, None,None]
     lista_img_mini = [None, None,None, None,None]
     lista_url_img_pov = [None, None,None, None,None]
@@ -117,17 +110,13 @@ def detector_movimiento():
     global exit_event
     global keys_number
 
-    # Crear y comenzar un nuevo hilo para el listener
-    mouse_thread = threading.Thread(target=mouse_listener)
-    keyboard_thread  = threading.Thread(target=keyboard_listener)
+    # Crear y comenzar un nuevo hilo para el detector de movimiento
+    detector = comun_file.MouseMoveDetector()
+    detector.start()
 
-    mouse_thread.start()
-    keyboard_thread.start()
+    # Esperar a que el hilo termine
+    detector.join() 
 
-    # Esperar hasta que se establezca el evento para salir del bucle
-    exit_event.wait()
-
-    moviminento = [int(keys_number),int(mouse_coords["x"]),int(mouse_coords["y"])]
-    keys_number = 0
+    moviminento = [int(detector.keys_number),int(detector.mouse_coords["x"]),int(detector.mouse_coords["y"])]
 
     return moviminento

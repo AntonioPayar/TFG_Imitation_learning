@@ -2,11 +2,6 @@ import numpy as np
 import pandas as pd
 import cv2
 import mss
-from pynput.mouse import Listener as MouseListener
-from pynput.keyboard import Listener as KeyboardListener, Key
-#import pyautogui
-#from pynput.mouse import Listener
-#from pynput.keyboard import Listener as KeyboardListener, Key
 import threading
 from datetime import datetime
 import os
@@ -15,67 +10,6 @@ from PIL import ImageGrab , Image ,UnidentifiedImageError
 import queue
 
 import comun_file
-
-# Variable de control para salir del bucle
-exit_event = threading.Event()
-mouse_coords = {'x': None, 'y': None}
-keys_pressed = set()
-keys_number = 0
-
-
-def on_move(x, y):
-    global mouse_coords,exit_event
-    mouse_coords['x'] = x
-    mouse_coords['y'] = y
-    # Establecer el evento para salir del bucle
-    exit_event.set()
-
-def on_key_press(key):
-    global keys_pressed
-    try:
-        if key.char in ['w', 'a', 's', 'd']:
-            keys_pressed.add(key.char)
-            check_combinations()
-    except AttributeError:
-        pass
-
-def on_key_release(key):
-    global keys_pressed
-    try:
-        if key.char in ['w', 'a', 's', 'd']:
-            keys_pressed.discard(key.char)
-    except AttributeError:
-        pass
-
-def check_combinations():
-    global keys_number
-
-    if 'w' in keys_pressed:
-        keys_number = 1
-    elif 'a' in keys_pressed:
-        keys_number = 2
-    elif 's' in keys_pressed:
-        keys_number = 3
-    elif 'd' in keys_pressed:
-        keys_number = 4 
-    elif 'w' in keys_pressed and 'a' in keys_pressed:
-        keys_number = 5
-    elif 'w' in keys_pressed and 'd' in keys_pressed:
-        keys_number = 6
-    elif 's' in keys_pressed and 'a' in keys_pressed:
-        keys_number = 7
-    elif 's' in keys_pressed and 'd' in keys_pressed:
-        keys_number = 8
-
-def mouse_and_keyboard_listener():
-    global exit_event
-    # Listener para el movimiento del mouse y las pulsaciones de teclas
-    with MouseListener(on_move=on_move) as mouse_listener, \
-         KeyboardListener(on_press=on_key_press) as keyboard_listener:
-        
-        # Unificar los eventos de salida de ambos listeners
-        while not exit_event.is_set():
-            exit_event.wait(timeout=0.1)  # Esperar hasta que se establezca el evento para salir del bucle
 
 def zoom_frame_minimapa(frame,zoom_factor):
 
@@ -88,8 +22,8 @@ def zoom_frame_minimapa(frame,zoom_factor):
     # Calcula las coordenadas del área de zoom, incluyendo el desplazamiento horizontal
     x_start = 10
     x_end = (x_start + zoom_width) - 250
-    y_start = 5
-    y_end = (y_start + zoom_height) - 80
+    y_start = 25
+    y_end = (y_start + zoom_height) - 110
 
     # Recorta el área de zoom basado en la esquina seleccionada 
     cropped_frame = frame[y_start:y_end, x_start:x_end]
@@ -127,28 +61,6 @@ def cargar_pantalla():
 
         return img_mini_mapa, img_pov
 
-'''
-def cargar_pantalla():
-
-    try :
-        screenshot = pyautogui.screenshot()
-        #Convertimos a np
-        img_np = np.array(screenshot)
-        img_np = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
-
-        img_mini_mapa = procesar_frames_minimapa(img_np)
-
-        img_mini_mapa = cv2.resize(img_mini_mapa, (268, 183))
-        img_pov = cv2.resize(img_np, (1280, 720))
-
-        return img_mini_mapa, img_pov
-    
-    except UnidentifiedImageError as e:
-        print(f"Error al capturar la pantalla: {e}")
-        img_mini_mapa = np.empty(shape=(268, 183,3), dtype=np.float64)
-        img_pov = np.empty(shape=(1280, 720, 3), dtype=np.float64)
-        return img_mini_mapa, img_pov
-'''
 
 def procesar_frames_minimapa(img_np):
     
