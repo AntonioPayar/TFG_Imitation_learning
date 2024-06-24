@@ -6,6 +6,7 @@ from Xlib import X, display
 from Xlib.ext import xtest
 import threading
 import time
+from datetime import datetime
 
 # Globales Ventana
 cod_window = None

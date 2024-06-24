@@ -85,6 +85,16 @@ def interfaz_selccion_ventana():
     # Crear un marco Finalizado  
     frame02 = tk.Frame(root)
     frame02.pack(pady=20)
+
+    # Crear Labels dentro del frame02font=("Helvetica", 10)
+    label_tx_01 = tk.Label(frame02, text="ADVERTENCIA", bg="red", fg="white", font=("Helvetica", 20, "bold"))
+    label_tx_02 = tk.Label(frame02, text="- Empezara a presionar boton (w)")
+    label_tx_03 = tk.Label(frame02, text="- Estate jugando, dentro del juego antes de dar al boton")
+
+    # Empaquetar los Labels
+    label_tx_01.pack()
+    label_tx_02.pack()
+    label_tx_03.pack()
     
     boton02 = tk.Button(frame02, text="Grabación", command=boton_modo_grabacion , font=("Arial", 16) ,width=20, height=7, bg="grey", fg="white")
     boton02.pack(side=tk.LEFT, padx=5)
@@ -95,6 +105,3 @@ def interfaz_selccion_ventana():
     root.mainloop()
 
     return ventana , opcion_elegida
-
-#if __name__ == '__main__':
-#    interfaz_selccion_ventana()

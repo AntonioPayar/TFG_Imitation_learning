@@ -19,7 +19,7 @@ def modo_grabacion_movimientos():
     i = 0
     # --------------------------------Crear e iniciar un hilo para mantener las teclas presionadas
     key_thread = threading.Thread(target=comun_file.press_keys_xlib)
-    #key_thread.start()
+    key_thread.start()
 
     try:
 
@@ -39,8 +39,8 @@ def modo_grabacion_movimientos():
                 pov_str = f"datos/pov/pov_{timestamp}.jpg"
 
                 # -------------------------Guarda las imágenes redimensionadas en formato JPG
-                #cv2.imwrite(mini_str, img_mini_mapa)
-                #cv2.imwrite(pov_str, img_np)
+                cv2.imwrite(mini_str, img_mini_mapa)
+                cv2.imwrite(pov_str, img_np)
 
                 #Almacenamos la localizacion de la img
                 lista_url_img_mini[i] = mini_str
@@ -94,4 +94,4 @@ def preparacion_datos_pandas(img_mini,img_pov,moviminento):
     row_pov = {'pov_01': img_pov[0], 'pov_02': img_pov[1], 'pov_03': img_pov[2], 'pov_04': img_pov[3],'pov_05': img_pov[4], 'mouse_final':moviminento}
 
     #Guardamos datos en csv
-    #guardar_csv(row,row_pov)
+    guardar_csv(row,row_pov)

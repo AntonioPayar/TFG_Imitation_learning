@@ -13,10 +13,14 @@ frame03 = None
 frame04 = None
 label = None
 label_clientes_serverX = None
+label_tiempo = None
 boton02 = None
 
 texto_label_contador = None
 cuenta_atras_label = None
+#Para comprobar el tiempo de grabacion
+hora_inicio = datetime.now().strftime("%H:%M:%S")
+hora_inicio = datetime.strptime(hora_inicio, "%H:%M:%S")
 
 import subprocess
 
@@ -67,6 +71,25 @@ def mostrar_imagenes_gr(lista,frame,size):
     # Asignar referencias de imagen al frame para evitar recolección de basura
     frame.image_refs = referencias_imagenes
 
+def actualizar_hora():
+    global hora_inicio,label_tiempo
+
+    hora_fin = datetime.now().strftime("%H:%M:%S")
+    hora_fin = datetime.strptime(hora_fin, "%H:%M:%S")  # Convertimos las cadenas de tiempo en objetos datetime
+
+    # Calculamos la diferencia entre las horas
+    diferencia = hora_fin - hora_inicio
+
+    # Extraemos la diferencia en horas, minutos y segundos
+    diferencia_horas = diferencia.seconds // 3600
+    diferencia_minutos = (diferencia.seconds // 60) % 60
+    diferencia_segundos = diferencia.seconds % 60
+
+    # Formateamos el resultado en el formato deseado
+    resultado_formateado = "{:02d}:{:02d}:{:02d}".format(diferencia_horas, diferencia_minutos, diferencia_segundos)
+    label_tiempo.config(text=resultado_formateado)
+
+
 def finalizar_gr():
     global root
 
@@ -78,7 +101,8 @@ def check_queue_gr():
     global cola_imagenes_pov
     global root ,frame ,frame02 ,label ,label_clientes_serverX
     try:
-        # Intentar obtener una lista de imágenes de la cola
+        actualizar_hora()
+        # Obtenemos una lista de imágenes de la cola
         lista_imagenes_map = cola_imagenes_map.get_nowait()
         lista_imagenes_pov = cola_imagenes_pov.get_nowait()
         mov_raton = cola_mov_raton.get_nowait()
@@ -99,7 +123,7 @@ def interfaz_grabacion():
     global frame02
     global frame03
     global frame04
-    global label , label_clientes_serverX
+    global label , label_clientes_serverX ,label_tiempo
     global boton02
     global texto_label_contador
     global cuenta_atras_label
@@ -132,6 +156,9 @@ def interfaz_grabacion():
 
     label_clientes_serverX = tk.Label(frame03, text="", font=("Arial", 18), bg="orange", fg="blue")
     label_clientes_serverX.pack(pady=20)
+
+    label_tiempo = tk.Label(frame03, text=" ", font=("Helvetica", 10))
+    label_tiempo.pack(pady=20)
 
     # Crear un marco Finalizado  
     frame04 = tk.Frame(root)
