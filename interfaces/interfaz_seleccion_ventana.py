@@ -73,7 +73,7 @@ def interfaz_selccion_ventana():
 
     # Crear la ventana principal
     root = tk.Tk()
-    root.title("Roberick")
+    root.title("Teudorico")
 
     # Crear un fila con imagenes mini_mapa y list_box 
     frame = tk.Frame(root)

@@ -41,7 +41,7 @@ if __name__ == '__main__':
     imagen_thread = threading.Thread(target=funcion_elegida)        #Un hilo para la capturadora
     imagen_thread.daemon = True 
     imagen_thread.start()
-
+    
     ineterfaz()     #Llamamos a la funcion
 
     #Eliminanos las ultimas 3 filas del csv para evitar ruido del menu
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         comun_file.DF_mini = comun_file.DF_mini[:-3]
         comun_file.DF_pov = comun_file.DF_pov[:-3]
 
-        #Guardamos el archivo
-        comun_file.DF_mini.to_csv(csv_mini, index=False)
-        comun_file.DF_pov.to_csv(csv_pov, index=False)
+        #Guardamos el archivo sobrescribiendo el anterior
+        comun_file.DF_mini.to_csv(csv_mini, mode='a', header=False, index=False)
+        comun_file.DF_pov.to_csv(csv_pov, mode='a', header=False, index=False)
         print("Archivos guardados...")

@@ -136,7 +136,7 @@ def interfaz_autonomo():
 
     # Crear la ventana principal
     root = tk.Tk()
-    root.title("Roberick")
+    root.title("Teudorico")
 
     # Crear la etiqueta para el texto "Quedan:"
     texto_label_contador = tk.Label(root, text="Empiece ya a jugar:", font=("Arial", 48))

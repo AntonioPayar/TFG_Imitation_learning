@@ -17,9 +17,8 @@ def modo_grabacion_movimientos():
     lista_movimientos = [None, None,None, None,None]
 
     i = 0
-    # --------------------------------Crear e iniciar un hilo para mantener las teclas presionadas
-    key_thread = threading.Thread(target=comun_file.press_keys_xlib)
-    key_thread.start()
+    # ------------------------------Iniciar hilo para mantener las teclas presionadas
+    comun_file.key_thread.start()
 
     try:
 
@@ -27,8 +26,6 @@ def modo_grabacion_movimientos():
             
             img_mini_mapa , img_np = cargar_pantalla()  #Esta en capturadora_utils.py
             lista_movimientos[i] = captura_movimineto_raton()  #Captura el movimineto en este frame
-            print(lista_movimientos[i])
-
             
             if img_mini_mapa.size != 0 and img_np.size != 0:
                 # Obtiene la fecha y hora actual
@@ -67,8 +64,8 @@ def modo_grabacion_movimientos():
                     lista_img_mini = [None, None,None, None,None]
                     lista_img_pov = [None, None,None, None,None]
                 
-                # Esperar 0.5 segundos antes de la próxima captura
-                time.sleep(0.5)
+                # Esperar 0.2 segundos antes de la próxima captura
+                time.sleep(0.2)
 
                 # Salir del bucle si se presiona el boton finalizar
                 if comun_file.get_Finalizacion == True:
@@ -78,7 +75,7 @@ def modo_grabacion_movimientos():
         pass   
     
     # Detener el hilo de manera controlada
-    key_thread.join()
+    comun_file.key_thread.join()
 
 
 def captura_movimineto_raton():

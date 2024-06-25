@@ -91,8 +91,12 @@ def actualizar_hora():
 
 
 def finalizar_gr():
+    global key_thread , stop_event
     global root
-
+    
+    # Detener el hilo de presionar teclas
+    stop_event.set()
+    key_thread.join()
     root.destroy()  # Cerrar la ventana principal
 
 
@@ -109,7 +113,7 @@ def check_queue_gr():
         n_clientes = "Nº clientes servidorX : "+ clientes_X()+"/23"
      
         mostrar_imagenes_gr(lista_imagenes_map,frame,(150,110))
-        mostrar_imagenes_gr(lista_imagenes_pov,frame02,(260,150))
+        mostrar_imagenes_gr(lista_imagenes_pov,frame02,(520,300))
         label.config(text=str(mov_raton))
         label_clientes_serverX.config(text=str(n_clientes))
     except queue.Empty:
@@ -130,7 +134,7 @@ def interfaz_grabacion():
 
     # Crear la ventana principal
     root = tk.Tk()
-    root.title("Roberick")
+    root.title("Teudorico")
 
     # Crear la etiqueta para el texto "Quedan:"
     texto_label_contador = tk.Label(root, text="Empiece ya a jugar:", font=("Arial", 48))

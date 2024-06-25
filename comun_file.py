@@ -21,6 +21,8 @@ cola_imagenes_map = queue.Queue()
 cola_imagenes_pov = queue.Queue()
 cola_mov_raton = queue.Queue()  #Grabacion
 
+# Crear un evento para señalizar cuando el hilo debe detenerse
+stop_event = threading.Event()
 
 # Función para presionar teclas 'W' y 'Shift_L' usando Xlib
 def press_keys_xlib():
@@ -35,15 +37,19 @@ def press_keys_xlib():
     keycode_shift_l = 50  # Este número puede variar según el layout del teclado
 
     try:
-        while True:
+        while not stop_event.is_set():
             # Simular presión de teclas 'W' y 'Shift_L'
             xtest.fake_input(d, X.KeyPress, keycode_w)
             xtest.fake_input(d, X.KeyPress, keycode_shift_l)
             d.sync()
             time.sleep(0.1)  # Pequeño tiempo de espera para evitar uso excesivo de CPU
 
-    except KeyboardInterrupt:
+    finally:
         # Soltar las teclas 'W' y 'Shift_L' al interrumpir el script
         xtest.fake_input(d, X.KeyRelease, keycode_w)
         xtest.fake_input(d, X.KeyRelease, keycode_shift_l)
         d.sync()
+
+
+#Hilo que presiona teclas (w+shift)
+key_thread = threading.Thread(target=press_keys_xlib)
