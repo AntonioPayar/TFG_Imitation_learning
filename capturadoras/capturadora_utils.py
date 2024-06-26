@@ -8,8 +8,12 @@ import os
 import time
 from PIL import ImageGrab , Image ,UnidentifiedImageError
 from pynput import mouse
+from pynput.mouse import Controller
 
 import comun_file
+
+#Funcion Media de una lista de movimientos registrados
+media = lambda lista: [round(sum(x[0] for x in lista) / len(lista)), round(sum(x[1] for x in lista) / len(lista))]
 
 def zoom_frame_minimapa(frame,zoom_factor):
 
@@ -51,7 +55,7 @@ def cargar_pantalla():
             img_mini_mapa = procesar_frames_minimapa(img_np)
 
             img_mini_mapa = cv2.resize(img_mini_mapa, (135, 93))
-            img_pov = cv2.resize(img_np, (320, 180))
+            img_pov = cv2.resize(img_np, (640, 360))
 
         except Exception as e:
             print(f"Error general en el intento : {e}")
@@ -90,7 +94,7 @@ def guardar_csv(row,row_pov):
     comun_file.DF_mini = pd.concat([comun_file.DF_mini, row_df], ignore_index=True)
     comun_file.DF_pov = pd.concat([comun_file.DF_pov, row_df_pov], ignore_index=True)
 
-    csv_path = 'datos/datos_bo3_minimapa.csv'
+    csv_path = 'datos/grabacion/datos_bo3_minimapa.csv'
 
     if not os.path.isfile(csv_path):
         # Si el archivo no existe, escribir el DataFrame con el encabezado
@@ -99,7 +103,7 @@ def guardar_csv(row,row_pov):
         # Si el archivo existe, escribir el DataFrame sin el encabezado
         comun_file.DF_mini.to_csv(csv_path, mode='a', header=False, index=False)
     
-    csv_path = 'datos/datos_bo3_pov.csv'
+    csv_path = 'datos/grabacion/datos_bo3_pov.csv'
 
     if not os.path.isfile(csv_path):
         # Si el archivo no existe, escribir el DataFrame con el encabezado
@@ -109,13 +113,38 @@ def guardar_csv(row,row_pov):
         comun_file.DF_pov.to_csv(csv_path, mode='a', header=False, index=False)
 
 
+def captura_movimineto_raton():
+    detector = MouseMoveDetector(comun_file.intervalo_captura)  #Clase en Captura_Utils
+    detector.start()
+    return detector.capture_displacement() #Retorna el movimiento realizado con el raton
+
+def mover_raton_prediccion(delta_x, delta_y):
+    # Creamos una instancia del controlador del ratón
+    mouse = Controller()
+    
+    # Obtenemos la posición actual del ratón
+    current_x, current_y = mouse.position
+    
+    # Calculamos las nuevas coordenadas sumando los deltas
+    new_x = current_x + delta_x
+    new_y = current_y + delta_y
+
+    # Limitamos las coordenadas para asegurar que estén dentro del rango válido
+    new_x = max(0, min(new_x, comun_file.resolucion_pantalla[0]))
+    new_y = max(0, min(new_y, comun_file.resolucion_pantalla[1]))
+
+    # Movemos el ratón a las nuevas coordenadas
+    mouse.position = (int(new_x), int(new_y))
+
+    print(f"Ratón movido a: {new_x}, {new_y}")
 
 # Clase captura el movimineto del Raton instanciando un nuevo hilo
 class MouseMoveDetector(threading.Thread):
-    def __init__(self):
+    def __init__(self,intervalo_tiempo):
         super().__init__()
         self.current_position = (0, 0)
         self.total_displacement = (0, 0)
+        self.intervalo = intervalo_tiempo
         self.lock = threading.Lock()
         self.listener = mouse.Listener(on_move=self.on_move)
 
@@ -132,8 +161,8 @@ class MouseMoveDetector(threading.Thread):
         self.listener.start()
         self.listener.join()
 
-    def capture_displacement(self, interval=1):
-        time.sleep(interval)  # Espera durante el intervalo especificado
+    def capture_displacement(self):
+        time.sleep(self.intervalo)  # Espera durante el intervalo especificado
         movimiento = [None,None]
         with self.lock:
             dx, dy = self.total_displacement

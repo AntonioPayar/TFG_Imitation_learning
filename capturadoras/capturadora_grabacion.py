@@ -1,7 +1,5 @@
 from capturadoras.capturadora_utils import *
 
-#Funcion Media de una lista de movimientos registrados
-media = lambda lista: [round(sum(x[0] for x in lista) / len(lista)), round(sum(x[1] for x in lista) / len(lista))]
 
 def modo_grabacion_movimientos():
     global media
@@ -32,8 +30,8 @@ def modo_grabacion_movimientos():
                 now = datetime.now()
                 timestamp = now.strftime("%d-%H-%M-%S")
 
-                mini_str = f"datos/mini_mapa/mini_mapa_{timestamp}.jpg"
-                pov_str = f"datos/pov/pov_{timestamp}.jpg"
+                mini_str = f"datos/grabacion/mini_mapa/mini_mapa_{timestamp}.jpg"
+                pov_str = f"datos/grabacion/pov/pov_{timestamp}.jpg"
 
                 # -------------------------Guarda las imágenes redimensionadas en formato JPG
                 cv2.imwrite(mini_str, img_mini_mapa)
@@ -50,8 +48,9 @@ def modo_grabacion_movimientos():
                 if i < 4:
                     i = i + 1
                 else:
-
+                    print(lista_movimientos)
                     media_movimientos = media(lista_movimientos)
+
                     #-----------Almacenamos las img y csv
                     preparacion_datos_pandas(lista_url_img_mini,lista_url_img_pov,media_movimientos)
 
@@ -63,9 +62,10 @@ def modo_grabacion_movimientos():
                     i = 0
                     lista_img_mini = [None, None,None, None,None]
                     lista_img_pov = [None, None,None, None,None]
+                    lista_movimientos = [None, None,None, None,None]
                 
                 # Esperar 0.2 segundos antes de la próxima captura
-                time.sleep(0.2)
+                time.sleep(comun_file.intervalo_captura)
 
                 # Salir del bucle si se presiona el boton finalizar
                 if comun_file.get_Finalizacion == True:
@@ -76,12 +76,6 @@ def modo_grabacion_movimientos():
     
     # Detener el hilo de manera controlada
     comun_file.key_thread.join()
-
-
-def captura_movimineto_raton():
-    detector = MouseMoveDetector()  #Clase en Captura_Utils
-    detector.start()
-    return detector.capture_displacement(0.1) #Retorna el movimiento realizado con el raton
 
 
 def preparacion_datos_pandas(img_mini,img_pov,moviminento):

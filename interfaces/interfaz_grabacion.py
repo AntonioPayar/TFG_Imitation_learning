@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk ,ImageGrab
+import subprocess
 import queue
 
 from comun_file import  *
@@ -21,8 +22,6 @@ cuenta_atras_label = None
 #Para comprobar el tiempo de grabacion
 hora_inicio = datetime.now().strftime("%H:%M:%S")
 hora_inicio = datetime.strptime(hora_inicio, "%H:%M:%S")
-
-import subprocess
 
 def clientes_X():
     # Comando a ejecutar

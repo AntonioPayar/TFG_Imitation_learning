@@ -21,8 +21,12 @@ cola_imagenes_map = queue.Queue()
 cola_imagenes_pov = queue.Queue()
 cola_mov_raton = queue.Queue()  #Grabacion
 
-# Crear un evento para señalizar cuando el hilo debe detenerse
+# Evento para terminar hilo de presion letra (w)
 stop_event = threading.Event()
+
+#Intervalo de tiempo entre captura de imagenes
+intervalo_captura = None
+resolucion_pantalla = [None,None]
 
 # Función para presionar teclas 'W' y 'Shift_L' usando Xlib
 def press_keys_xlib():

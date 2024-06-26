@@ -7,6 +7,7 @@ from capturadoras import capturadora_autonoma , capturadora_grabacion
 import pandas as pd
 import os
 import threading
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
 
 #Utilizar entorno
@@ -17,6 +18,11 @@ import threading
 #---Mostrar clientes XServer
 #xlsclients
 if __name__ == '__main__':
+
+    comun_file.intervalo_captura = 0.2
+    comun_file.resolucion_pantalla[0] = 1920
+    comun_file.resolucion_pantalla[1] = 1080
+        
 
     comun_file.DF_mini = pd.DataFrame(columns=['mini_01','mini_02','mini_03','mini_04','mini_05','mouse_final'])
     comun_file.DF_pov = pd.DataFrame(columns=['pov_01','pov_02','pov_03','pov_04','pov_05','mouse_final'])
@@ -44,16 +50,17 @@ if __name__ == '__main__':
     
     ineterfaz()     #Llamamos a la funcion
 
-    #Eliminanos las ultimas 3 filas del csv para evitar ruido del menu
-    csv_mini = 'datos/datos_bo3_minimapa.csv'
-    csv_pov = 'datos/datos_bo3_pov.csv'
+    # Si selecciona grabacion limpiamos los ultimos datos donde aparece el menu
+    if opcion_elegida == 0 :
+        #Eliminanos las ultimas 3 filas del csv para evitar ruido del menu
+        csv_mini = 'datos/grabacion/datos_bo3_minimapa.csv'
+        csv_pov = 'datos/grabacion/datos_bo3_pov.csv'
+        if os.path.isfile(csv_mini) and os.path.isfile(csv_pov):
+            # Eliminar las últimas 3 filas
+            comun_file.DF_mini = comun_file.DF_mini[:-3]
+            comun_file.DF_pov = comun_file.DF_pov[:-3]
 
-    if os.path.isfile(csv_mini) and os.path.isfile(csv_pov):
-        # Eliminar las últimas 3 filas
-        comun_file.DF_mini = comun_file.DF_mini[:-3]
-        comun_file.DF_pov = comun_file.DF_pov[:-3]
-
-        #Guardamos el archivo sobrescribiendo el anterior
-        comun_file.DF_mini.to_csv(csv_mini, mode='a', header=False, index=False)
-        comun_file.DF_pov.to_csv(csv_pov, mode='a', header=False, index=False)
-        print("Archivos guardados...")
+            #Guardamos el archivo sobrescribiendo el anterior
+            comun_file.DF_mini.to_csv(csv_mini, mode='a', header=False, index=False)
+            comun_file.DF_pov.to_csv(csv_pov, mode='a', header=False, index=False)
+            print("Archivos guardados...")
