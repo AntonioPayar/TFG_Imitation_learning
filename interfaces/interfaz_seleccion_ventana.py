@@ -1,5 +1,5 @@
 import tkinter as tk
-import pygetwindow as gw
+from Xlib import display
 
 listbox = None
 scrollbar = None
@@ -21,13 +21,14 @@ def list_box_ventanas_abiertas():
     scrollbar.config(command=listbox.yview)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     listbox.config(yscrollcommand=scrollbar.set)
-    
-    windows = gw.getAllTitles()     #   Obtener todas las ventanas abiertas
-    windows = [window for window in windows if window]  # Filtrar ventanas sin título
 
-    # Añadir las ventanas al Listbox
-    for window in windows:
-        listbox.insert(tk.END, window)
+
+
+    for i in range(1, 1+2):
+        listbox.insert(tk.END, i)     #Añadimos el monitor a la interfaz
+    
+    #display.flush() # Llamar a flush para asegurar que todas las operaciones pendientes se completen
+    #display.close()
     
     # Asignar la función de doble clic al Listbox
     listbox.bind("<Double-1>", on_double_click)
@@ -72,7 +73,7 @@ def interfaz_selccion_ventana():
 
     # Crear la ventana principal
     root = tk.Tk()
-    root.title("Roberick")
+    root.title("Teudorico")
 
     # Crear un fila con imagenes mini_mapa y list_box 
     frame = tk.Frame(root)
@@ -84,6 +85,16 @@ def interfaz_selccion_ventana():
     # Crear un marco Finalizado  
     frame02 = tk.Frame(root)
     frame02.pack(pady=20)
+
+    # Crear Labels dentro del frame02font=("Helvetica", 10)
+    label_tx_01 = tk.Label(frame02, text="ADVERTENCIA", bg="red", fg="white", font=("Helvetica", 20, "bold"))
+    label_tx_02 = tk.Label(frame02, text="- Empezara a presionar boton (w)")
+    label_tx_03 = tk.Label(frame02, text="- Estate jugando, dentro del juego antes de dar al boton")
+
+    # Empaquetar los Labels
+    label_tx_01.pack()
+    label_tx_02.pack()
+    label_tx_03.pack()
     
     boton02 = tk.Button(frame02, text="Grabación", command=boton_modo_grabacion , font=("Arial", 16) ,width=20, height=7, bg="grey", fg="white")
     boton02.pack(side=tk.LEFT, padx=5)

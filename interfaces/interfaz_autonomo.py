@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+import subprocess
 from PIL import Image, ImageTk ,ImageGrab
-import pygetwindow as gw
 import queue
 
 from comun_file import  *
@@ -20,11 +20,28 @@ etiqueta_estado = None
 progreso = None
 listbox = None
 scrollbar = None
+label_clientes_serverX = None
 
 texto_label_contador = None
 cuenta_atras_label = None
 
 anterior_movimiento_registrado = None
+
+def clientes_X():
+    # Comando a ejecutar
+    comando = "xlsclients | wc -l"
+
+    # Ejecutar el comando y capturar la salida
+    resultado = subprocess.run(comando, shell=True, capture_output=True, text=True)
+
+    # Verificar si la ejecución fue exitosa
+    if resultado.returncode == 0:
+        # Imprimir el resultado obtenido
+        return str(resultado.stdout.strip())
+        #print(f"Número de clientes conectados: {resultado.stdout.strip()}")
+    else:
+        # Manejar el caso de error si es necesario
+        print(f"Error al ejecutar el comando: {resultado.stderr}")
 
 def iniciar_cuenta_atras(segundos):
     global texto_label_contador
@@ -65,6 +82,8 @@ def pulsar_boton(bool):
         boton.config(text="🤖 Manual 🤖")
 
 def finalizar():
+    global key_thread , stop_event
+    global root
     get_Finalizacion = True
     # Deshabilitar el botón mientras se realiza el proceso
     boton02.config(state=tk.DISABLED)
@@ -72,6 +91,10 @@ def finalizar():
 
     etiqueta_estado.pack()      # Mostrar la etiqueta de estado
     progreso.pack()
+
+    # ------------------Detener el hilo de presionar teclas
+    stop_event.set()
+    key_thread.join()
     
     progreso.start(50)  # Iniciar la barra de progreso con un intervalo de actualización de 50 ms
     etiqueta_estado.config(text="Re-Entrenando el modelo")   # Actualizar el texto de la etiqueta
@@ -95,13 +118,14 @@ def check_queue():
     global cola_imagenes_map
     global cola_imagenes_pov
     global root
-    global anterior_movimiento_registrado
+    global anterior_movimiento_registrado ,label_clientes_serverX
 
     try:
         # Obtener una lista de imágenes de la cola y movimientos
         lista_imagenes_map = cola_imagenes_map.get_nowait()
         lista_imagenes_pov = cola_imagenes_pov.get_nowait()
         mov_raton = cola_mov_raton.get_nowait()
+        n_clientes = "Nº clientes servidorX : "+ clientes_X()+"/23"
 
         #Para que guarde la primera posicion registrada
         if mov_raton == None:
@@ -116,6 +140,7 @@ def check_queue():
      
         mostrar_imagenes_01(lista_imagenes_map,frame,(150,110))
         mostrar_imagenes_01(lista_imagenes_pov,frame02,(260,150))
+        label_clientes_serverX.config(text=str(n_clientes))
     except queue.Empty:
         pass
     # Volver a comprobar la cola después de un corto intervalo
@@ -132,12 +157,12 @@ def interfaz_autonomo():
     global boton02
     global etiqueta_estado
     global progreso
-    global texto_label_contador
+    global texto_label_contador , label_clientes_serverX
     global cuenta_atras_label
 
     # Crear la ventana principal
     root = tk.Tk()
-    root.title("Roberick")
+    root.title("Teudorico")
 
     # Crear la etiqueta para el texto "Quedan:"
     texto_label_contador = tk.Label(root, text="Empiece ya a jugar:", font=("Arial", 48))
@@ -165,6 +190,10 @@ def interfaz_autonomo():
     # Label de Texto
     label_texto = tk.Label(frame03, text="0 Elementos Para Re-entrenar el modelos", font=("Arial", 14))
     label_texto.pack(side=tk.LEFT)
+
+    #Label Cliente serverX
+    label_clientes_serverX = tk.Label(frame03, text="", font=("Arial", 18), bg="orange", fg="blue")
+    label_clientes_serverX.pack(pady=20)
 
     # Crear un marco Finalizado  
     frame04 = tk.Frame(root)

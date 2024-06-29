@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk ,ImageGrab
-import queue
-import pygetwindow as gw
+import subprocess
 import queue
 
 from comun_file import  *
@@ -14,10 +13,31 @@ frame02 = None
 frame03 = None
 frame04 = None
 label = None
+label_clientes_serverX = None
+label_tiempo = None
 boton02 = None
 
 texto_label_contador = None
 cuenta_atras_label = None
+#Para comprobar el tiempo de grabacion
+hora_inicio = datetime.now().strftime("%H:%M:%S")
+hora_inicio = datetime.strptime(hora_inicio, "%H:%M:%S")
+
+def clientes_X():
+    # Comando a ejecutar
+    comando = "xlsclients | wc -l"
+
+    # Ejecutar el comando y capturar la salida
+    resultado = subprocess.run(comando, shell=True, capture_output=True, text=True)
+
+    # Verificar si la ejecución fue exitosa
+    if resultado.returncode == 0:
+        # Imprimir el resultado obtenido
+        return str(resultado.stdout.strip())
+        #print(f"Número de clientes conectados: {resultado.stdout.strip()}")
+    else:
+        # Manejar el caso de error si es necesario
+        print(f"Error al ejecutar el comando: {resultado.stderr}")
 
 def iniciar_cuenta_atras(segundos):
     global texto_label_contador
@@ -50,24 +70,51 @@ def mostrar_imagenes_gr(lista,frame,size):
     # Asignar referencias de imagen al frame para evitar recolección de basura
     frame.image_refs = referencias_imagenes
 
+def actualizar_hora():
+    global hora_inicio,label_tiempo
+
+    hora_fin = datetime.now().strftime("%H:%M:%S")
+    hora_fin = datetime.strptime(hora_fin, "%H:%M:%S")  # Convertimos las cadenas de tiempo en objetos datetime
+
+    # Calculamos la diferencia entre las horas
+    diferencia = hora_fin - hora_inicio
+
+    # Extraemos la diferencia en horas, minutos y segundos
+    diferencia_horas = diferencia.seconds // 3600
+    diferencia_minutos = (diferencia.seconds // 60) % 60
+    diferencia_segundos = diferencia.seconds % 60
+
+    # Formateamos el resultado en el formato deseado
+    resultado_formateado = "{:02d}:{:02d}:{:02d}".format(diferencia_horas, diferencia_minutos, diferencia_segundos)
+    label_tiempo.config(text=resultado_formateado)
+
+
 def finalizar_gr():
+    global key_thread , stop_event
     global root
+    
+    # Detener el hilo de presionar teclas
+    stop_event.set()
+    key_thread.join()
     root.destroy()  # Cerrar la ventana principal
 
 
 def check_queue_gr():
     global cola_imagenes_map
     global cola_imagenes_pov
-    global root ,frame ,frame02 ,label
+    global root ,frame ,frame02 ,label ,label_clientes_serverX
     try:
-        # Intentar obtener una lista de imágenes de la cola
+        actualizar_hora()
+        # Obtenemos una lista de imágenes de la cola
         lista_imagenes_map = cola_imagenes_map.get_nowait()
         lista_imagenes_pov = cola_imagenes_pov.get_nowait()
         mov_raton = cola_mov_raton.get_nowait()
+        n_clientes = "Nº clientes servidorX : "+ clientes_X()+"/23"
      
         mostrar_imagenes_gr(lista_imagenes_map,frame,(150,110))
         mostrar_imagenes_gr(lista_imagenes_pov,frame02,(260,150))
         label.config(text=str(mov_raton))
+        label_clientes_serverX.config(text=str(n_clientes))
     except queue.Empty:
         pass
     # Volver a comprobar la cola después de un corto intervalo
@@ -79,14 +126,14 @@ def interfaz_grabacion():
     global frame02
     global frame03
     global frame04
-    global label
+    global label , label_clientes_serverX ,label_tiempo
     global boton02
     global texto_label_contador
     global cuenta_atras_label
 
     # Crear la ventana principal
     root = tk.Tk()
-    root.title("Roberick")
+    root.title("Teudorico")
 
     # Crear la etiqueta para el texto "Quedan:"
     texto_label_contador = tk.Label(root, text="Empiece ya a jugar:", font=("Arial", 48))
@@ -109,6 +156,12 @@ def interfaz_grabacion():
     frame03.pack(pady=20)
     label = tk.Label(frame03, text="", font=("Arial", 18), bg="yellow", fg="blue")
     label.pack(pady=20)
+
+    label_clientes_serverX = tk.Label(frame03, text="", font=("Arial", 18), bg="orange", fg="blue")
+    label_clientes_serverX.pack(pady=20)
+
+    label_tiempo = tk.Label(frame03, text=" ", font=("Helvetica", 10))
+    label_tiempo.pack(pady=20)
 
     # Crear un marco Finalizado  
     frame04 = tk.Frame(root)
