@@ -12,30 +12,51 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 modelo_mapa = "modelos/modelo_mapa_1.0_.h5"
+csv_mini = None
+csv_pov = None
 
 
+"""
+    Funcion encargada de ejecutar el bucle de grabacion
+"""
 def bucle_capturadora_grabacion():
+    global csv_mini , csv_pov
+
+    csv_mini = 'datos/grabacion/datos_bo3_minimapa.csv'
+    csv_pov = 'datos/grabacion/datos_bo3_pov.csv'
     #Esperamos 5 segundos hasta que el usuario se prepara
     time.sleep(5)
     #Iniciar hilo para mantener las teclas presionadas
     comun_file.key_thread.start()
+
+    capturadora = capturadora_grabacion.CapturadoraGrabacion(comun_file.cod_window,csv_mini,csv_pov)
     #Bucle hasta que la interfaz grafica da la orden de finalizacion
     while comun_file.get_Finalizacion == False:
-        capturadora = capturadora_grabacion.CapturadoraGrabacion(comun_file.cod_window)
         capturadora.run()
+        capturadora.vaciar_memoria()
 
+
+"""
+    Funcion encargada de ejecutar el bucle del modo autonomo
+"""
 def bucle_capturadora_autonoma():
+    global csv_mini , csv_pov
     global modelo_mapa
 
-    capturadora_autonoma.configuracion_gpu_keras(modelo_mapa)
+    csv_mini = 'datos/fine_tuning/datos_bo3_minimapa.csv'
+    csv_pov = 'datos/fine_tuning/datos_bo3_pov.csv'
+
+    #capturadora_autonoma.configuracion_gpu_keras(modelo_mapa)
     #Esperamos 5 segundos hasta que el usuario se prepara
     time.sleep(5)
     #Iniciar hilo para mantener las teclas presionadas
-    comun_file.key_thread.start()
+    #comun_file.key_thread.start()
+
+    capturadora = capturadora_autonoma.CapturadoraAutonoma(comun_file.cod_window,csv_mini,csv_pov)
     #Bucle hasta que la interfaz grafica da la orden de finalizacion
     while comun_file.get_Finalizacion == False:
-        capturadora = capturadora_autonoma.CapturadoraAutonoma(comun_file.cod_window)
         capturadora.run()
+        capturadora.vaciar_memoria()
 
 
 #Utilizar entorno
@@ -78,23 +99,19 @@ if __name__ == '__main__':
     
     ineterfaz()     #Llamamos a la funcion
 
-    # Si selecciona grabacion limpiamos los ultimos datos donde aparece el menu
-    if opcion_elegida == 0 :
-        #Eliminanos las ultimas 3 filas del csv para evitar ruido del menu
-        csv_mini = 'datos/grabacion/datos_bo3_minimapa.csv'
-        csv_pov = 'datos/grabacion/datos_bo3_pov.csv'
 
-        if os.path.isfile(csv_mini) and os.path.isfile(csv_pov):
+    #Eliminamos las ultimas filas del csv para que no aparezca ruido del menu al finalizar
+    if os.path.isfile(csv_mini) and os.path.isfile(csv_pov):
 
-            # Eliminar filas duplicadas
-            comun_file.DF_mini.drop_duplicates(inplace=True)
-            comun_file.DF_pov.drop_duplicates(inplace=True)
+        # Eliminar filas duplicadas
+        comun_file.DF_mini.drop_duplicates(inplace=True)
+        comun_file.DF_pov.drop_duplicates(inplace=True)
 
-            # Eliminar las últimas 3 filas
-            comun_file.DF_mini = comun_file.DF_mini[:-5]
-            comun_file.DF_pov = comun_file.DF_pov[:-5]
+        # Eliminar las últimas 5 filas
+        comun_file.DF_mini = comun_file.DF_mini[:-5]
+        comun_file.DF_pov = comun_file.DF_pov[:-5]
 
-            #Guardamos el archivo sobrescribiendo el anterior
-            comun_file.DF_mini.to_csv(csv_mini, mode='a', header=False, index=False)
-            comun_file.DF_pov.to_csv(csv_pov, mode='a', header=False, index=False)
-            print("Archivos guardados...")
+        #Guardamos el archivo sobrescribiendo el anterior
+        comun_file.DF_mini.to_csv(csv_mini, mode='a', header=False, index=False)
+        comun_file.DF_pov.to_csv(csv_pov, mode='a', header=False, index=False)
+        print("Archivos guardados...")

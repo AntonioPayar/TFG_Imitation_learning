@@ -13,8 +13,8 @@ import csv
 
 
 class CapturadoraGrabacion(Capturadora):
-    def __init__(self,monitor):
-        super().__init__(monitor)
+    def __init__(self,monitor,csv_mini,csv_pov):
+        super().__init__(monitor,csv_mini,csv_pov)
 
     # Función principal para ejecutar en hilos
     def run(self):

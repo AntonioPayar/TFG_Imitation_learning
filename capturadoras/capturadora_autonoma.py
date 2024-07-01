@@ -20,20 +20,17 @@ def configuracion_gpu_keras(self,modelo):
 
 
 class CapturadoraAutonoma(Capturadora):
-    def __init__(self,monitor):
-        super().__init__(monitor)
-        self.movimineto_previo_detectado = [0,0]
-        self.bool_movimiento_detectado = False
+    def __init__(self,monitor,csv_mini,csv_pov):
+        super().__init__(monitor,csv_mini,csv_pov)
+        self.vaciar_memoria_temporal()
+    
+    def vaciar_memoria_temporal(self):
+        self.numero_listas = 0
         self.lista_frames_manual_mapa = [None,None,None]
         self.lista_frames_manual_pov = [None,None,None]
-
-        self.lista_url_img_mini = [None, None,None, None,None]
-        self.lista_img_mini = [None, None,None, None,None]
-        self.lista_url_img_pov = [None, None,None, None,None]
-        self.lista_img_pov = [None, None,None, None,None]
-        self.lista_movimientos = [None, None,None, None,None]
-        self.lisa_moviminetos = [None,None]
-        self.numero_listas = 0
+        self.lista_url_manual_mapa = [None,None,None]
+        self.lista_url_manual_pov = [None,None,None]
+        self.lista_moviminetos_manual = [None,None,None]
 
     def prediccion_img_mapa(self):
         global modelo_mapa
@@ -61,13 +58,12 @@ class CapturadoraAutonoma(Capturadora):
         mouse.move(delta_x, delta_y)
         print(f"Ratón movido a: {delta_x}, {delta_y}")
     
-    def comprobar_movimineto(self,movimiento):
+    def comprobar_movimineto(self):
 
-        if movimiento != self.movimineto_previo_detectado:
-            self.movimineto_previo_detectado = movimiento
-            self.bool_movimiento_detectado = True
+        if [self.lista_movimientos[0],self.lista_movimientos[1]] != [0,0]:
+            return True
         else:
-            self.bool_movimiento_detectado = False
+            return False
     
 
     """
@@ -84,18 +80,53 @@ class CapturadoraAutonoma(Capturadora):
         lista_img_pov (list): Lista con los 5 frames capturados del pov
         moviminento (list): movimiento realizado en esos 5 frames
     """
-    def guardar_frames_previos(self,lista_img_mini,lista_img_pov,moviminento):
+    def guardar_frames_previos(self):
 
         if self.numero_listas < 3:
-            self.lista_frames_manual_mapa[self.numero_listas] = lista_img_mini
-            self.lista_frames_manual_pov[self.numero_listas] = lista_img_pov
-            self.lisa_moviminetos[self.numero_listas] = moviminento
+            self.lista_frames_manual_mapa[self.numero_listas] = self.lista_img_mini
+            self.lista_frames_manual_pov[self.numero_listas] = self.lista_img_pov
+
+            self.lista_url_manual_mapa[self.numero_listas] = self.lista_url_img_mini
+            self.lista_url_manual_pov[self.numero_listas] = self.lista_url_img_pov
+
+            self.lista_moviminetos_manual[self.numero_listas] = self.lista_movimientos
             self.numero_listas = self.numero_listas + 1
         else:
-            self.lista_frames_manual_mapa = [None,None,None]
-            self.lista_frames_manual_pov = [None,None,None]
-            self.lisa_moviminetos = [None,None,None]
-            self.numero_listas = 0
+            self.vaciar_memoria_temporal()
+    
+    def guardar_modo_manual(self):
+
+        for i in range(self.numero_listas):
+            lista_mapa = self.lista_frames_manual_mapa[i]
+            lista_pov = self.lista_frames_manual_pov[i]
+            lista_movimiento = self.lista_moviminetos_manual[i]
+
+            lista_url_map = self.lista_url_manual_mapa[i]
+            lista_url_pov = self.lista_url_manual_pov[i]
+            
+            #Todos los datos temporales los preparamos y guardamos
+            self.preparacion_datos_pandas(lista_mapa,lista_pov,lista_movimiento,lista_url_map,lista_url_pov)
+        
+        #Eliminamos todos los frames ya guardados
+        self.vaciar_memoria_temporal()
+
+    
+
+    def preparacion_datos_pandas(self,lista_mapa,lista_pov,lista_movimiento,lista_url_map,lista_url_pov):
+
+        # Crear DataFrames para cada matriz
+        row ={'mini_01': lista_url_map[0], 'mini_02': lista_url_map[1], 'mini_03': lista_url_map[2], 'mini_04': lista_url_map[3],'mini_05': lista_url_map[4], 'mouse_final':str(lista_movimiento)}
+        row_pov = {'pov_01': lista_url_pov[0], 'pov_02': lista_url_pov[1], 'pov_03': lista_url_pov[2], 'pov_04': lista_url_pov[3],'pov_05': lista_url_pov[4], 'mouse_final':str(lista_movimiento)}
+
+
+        for i in range(len(lista_mapa)):
+            #Guarda las imágenes JPG
+            cv2.imwrite(lista_url_map[i], lista_mapa[i])
+            cv2.imwrite(lista_url_pov[i], lista_pov[i])
+        
+        #Guardamos datos en csv
+        self.guardar_csv(row,row_pov)
+
 
     def get_screenshot(self):
 
@@ -109,12 +140,8 @@ class CapturadoraAutonoma(Capturadora):
             timestamp = now.strftime("%d-%H-%M-%S-%f")
 
             #Creamos el nombre de las imgs
-            mini_str = f"datos/grabacion/mini_mapa/mini_mapa_{timestamp}.jpg"
-            pov_str = f"datos/grabacion/pov/pov_{timestamp}.jpg"
-
-            #Guarda las imágenes JPG
-            #cv2.imwrite(mini_str, img_mini_mapa)
-            #cv2.imwrite(pov_str, img_np)
+            mini_str = f"datos/fine_tuning/mini_mapa/mini_mapa_{timestamp}.jpg"
+            pov_str = f"datos/fine_tuning/pov/pov_{timestamp}.jpg"
 
             #Almacenamos la localizacion de la img
             self.lista_url_img_mini[i] = mini_str
@@ -139,10 +166,16 @@ class CapturadoraAutonoma(Capturadora):
         mouse_thread.join()
         capture_thread.join()
 
+        #Guardamos la lista anterior por si activa el modo manual
+        self.guardar_frames_previos()
+
+        if self.comprobar_movimineto() == True:
+            self.guardar_modo_manual()
+
         #Realizamos predicciones sobre el mapa
-        prediccion_movimineto = self.prediccion_img_mapa()
+        #prediccion_movimineto = self.prediccion_img_mapa()
         #Ejecutamos la accion
-        self.mover_raton_prediccion(int(prediccion_movimineto[0][0]),int(prediccion_movimineto[0][1]))
+        #self.mover_raton_prediccion(int(prediccion_movimineto[0][0]),int(prediccion_movimineto[0][1]))
 
         #Enviamos las imagenes a la interfaz grafica
         comun_file.cola_imagenes_map.put(self.lista_img_mini)

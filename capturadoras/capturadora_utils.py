@@ -14,16 +14,18 @@ from Xlib import display
 import comun_file
 
 class Capturadora:
-    def __init__(self,monitor):
+    def __init__(self,monitor,csv_mini,csv_pov):
         self.monito = monitor
+        self.csv_mini = csv_mini
+        self.csv_pov = csv_pov
         self.lock = threading.Lock()    # Añadir un lock para sincronización csv
-
+        self.vaciar_memoria()
+    
+    def vaciar_memoria(self):
         self.lista_url_img_mini = [None, None,None, None,None]
         self.lista_img_mini = [None, None,None, None,None]
-
         self.lista_url_img_pov = [None, None,None, None,None]
         self.lista_img_pov = [None, None,None, None,None]
-
         self.lista_movimientos = [None,None]
 
     def zoom_frame_minimapa(self, frame,zoom_factor):
@@ -88,8 +90,8 @@ class Capturadora:
                 img_pov = np.array(img_pov)
                 img_pov = cv2.cvtColor(img_pov, cv2.COLOR_RGB2BGR)
 
-                img_mini_mapa = cv2.resize(img_mini_mapa, (400, 225))
-                img_pov = cv2.resize(img_pov, (400, 225))
+                img_mini_mapa = cv2.resize(img_mini_mapa, (300, 225))
+                img_pov = cv2.resize(img_pov, (300, 225))
                 #img_mini_mapa = cv2.resize(img_mini_mapa, (195, 135))
                 #img_pov = cv2.resize(img_pov, (640, 360))
 
@@ -112,23 +114,21 @@ class Capturadora:
             comun_file.DF_mini = pd.concat([comun_file.DF_mini, row_df], ignore_index=True)
             comun_file.DF_pov = pd.concat([comun_file.DF_pov, row_df_pov], ignore_index=True)
 
-            csv_path = 'datos/grabacion/datos_bo3_minimapa.csv'
-
-            if not os.path.isfile(csv_path):
+            #Archivo csv mini
+            if not os.path.isfile(self.csv_mini):
                 # Si el archivo no existe, escribir el DataFrame con el encabezado
-                comun_file.DF_mini.to_csv(csv_path, mode='w', header=True, index=False)
+                comun_file.DF_mini.to_csv(self.csv_mini, mode='w', header=True, index=False)
             else :
                 # Si el archivo existe, escribir el DataFrame sin el encabezado
-                comun_file.DF_mini.to_csv(csv_path, mode='a', header=False, index=False)
-            
-            csv_path = 'datos/grabacion/datos_bo3_pov.csv'
+                comun_file.DF_mini.to_csv(self.csv_mini, mode='a', header=False, index=False)
 
-            if not os.path.isfile(csv_path):
+            #Archivo cvs pov
+            if not os.path.isfile(self.csv_pov):
                 # Si el archivo no existe, escribir el DataFrame con el encabezado
-                comun_file.DF_pov.to_csv(csv_path, mode='w', header=True, index=False)
+                comun_file.DF_pov.to_csv(self.csv_pov, mode='w', header=True, index=False)
             else :
                 # Si el archivo existe, escribir el DataFrame sin el encabezado
-                comun_file.DF_pov.to_csv(csv_path, mode='a', header=False, index=False)
+                comun_file.DF_pov.to_csv(self.csv_pov, mode='a', header=False, index=False)
 
     def preparacion_datos_pandas(self):
 

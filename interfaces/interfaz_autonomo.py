@@ -94,7 +94,7 @@ def finalizar():
 
     # ------------------Detener el hilo de presionar teclas
     stop_event.set()
-    key_thread.join()
+    #key_thread.join()
     
     progreso.start(50)  # Iniciar la barra de progreso con un intervalo de actualización de 50 ms
     etiqueta_estado.config(text="Re-Entrenando el modelo")   # Actualizar el texto de la etiqueta
