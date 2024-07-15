@@ -2,7 +2,7 @@ import comun_file
 from interfaces import interfaz_seleccion_ventana
 from interfaces import interfaz_grabacion
 from interfaces import interfaz_autonomo
-from capturadoras import capturadora_autonoma , capturadora_grabacion
+from capturadoras import capturadora_autonoma , capturadora_grabacion ,capturadora_grabacion_V2
 
 import pandas as pd
 import os
@@ -11,29 +11,41 @@ import time
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
 
-modelo_mapa = "modelos/modelo_mapa_1.0_.h5"
+modelo_mapa = "modelos/modelos_entrenados/modelo_todo_0.68_.h5"
 csv_mini = None
 csv_pov = None
 
 
 """
     Funcion encargada de ejecutar el bucle de grabacion
+
 """
+
 def bucle_capturadora_grabacion():
     global csv_mini , csv_pov
 
-    csv_mini = 'datos/grabacion/datos_bo3_minimapa.csv'
-    csv_pov = 'datos/grabacion/datos_bo3_pov.csv'
+    csv_mini = 'datos/grabacion/datos_bo3_minimapa_03.csv'
+    csv_pov = 'datos/grabacion/datos_bo3_pov_03.csv'
+
     #Esperamos 5 segundos hasta que el usuario se prepara
     time.sleep(5)
+
+    #Hilo que hace el movimiento de pantalla con las teclas de direccion
+    teclas_direccion = threading.Thread(target=comun_file.teclas_direccion_movimiento_pantalla)
     #Iniciar hilo para mantener las teclas presionadas
     comun_file.key_thread.start()
+    teclas_direccion.start()
 
-    capturadora = capturadora_grabacion.CapturadoraGrabacion(comun_file.cod_window,csv_mini,csv_pov)
+    capturadora = capturadora_grabacion_V2.CapturadoraGrabacion(comun_file.cod_window,csv_mini,csv_pov)
     #Bucle hasta que la interfaz grafica da la orden de finalizacion
     while comun_file.get_Finalizacion == False:
         capturadora.run()
-        capturadora.vaciar_memoria()
+        #capturadora.vaciar_memoria()
+    
+    #Finalizamos el proceso
+    teclas_direccion.join()
+    comun_file.key_thread.join()
+
 
 
 """
@@ -46,17 +58,23 @@ def bucle_capturadora_autonoma():
     csv_mini = 'datos/fine_tuning/datos_bo3_minimapa.csv'
     csv_pov = 'datos/fine_tuning/datos_bo3_pov.csv'
 
-    #capturadora_autonoma.configuracion_gpu_keras(modelo_mapa)
+    capturadora_autonoma.configuracion_gpu_keras(modelo_mapa)
     #Esperamos 5 segundos hasta que el usuario se prepara
     time.sleep(5)
+    #Hilo que hace el movimiento de pantalla con las teclas de direccion
+    teclas_direccion = threading.Thread(target=comun_file.teclas_direccion_movimiento_pantalla)
     #Iniciar hilo para mantener las teclas presionadas
-    #comun_file.key_thread.start()
+    comun_file.key_thread.start()
+    teclas_direccion.start()
 
     capturadora = capturadora_autonoma.CapturadoraAutonoma(comun_file.cod_window,csv_mini,csv_pov)
     #Bucle hasta que la interfaz grafica da la orden de finalizacion
     while comun_file.get_Finalizacion == False:
         capturadora.run()
         capturadora.vaciar_memoria()
+
+    #Finalizamos el proceso
+    teclas_direccion.join()
 
 
 #Utilizar entorno
@@ -68,7 +86,7 @@ def bucle_capturadora_autonoma():
 #xlsclients
 if __name__ == '__main__':
 
-    comun_file.intervalo_captura = 0.2
+    comun_file.intervalo_captura = 0.01
     comun_file.resolucion_pantalla[0] = 1920
     comun_file.resolucion_pantalla[1] = 1080
         
@@ -89,15 +107,14 @@ if __name__ == '__main__':
     if opcion_elegida == 0:
         ineterfaz = interfaz_grabacion.interfaz_grabacion               #Otro hilo para la interfaz
         funcion_elegida = bucle_capturadora_grabacion
+        funcion_elegida()
     else : 
         ineterfaz = interfaz_autonomo.interfaz_autonomo                  #Otro hilo para la interfaz
         funcion_elegida = bucle_capturadora_autonoma
-
-    imagen_thread = threading.Thread(target=funcion_elegida)        #Un hilo para la capturadora
-    imagen_thread.daemon = True 
-    imagen_thread.start()
-    
-    ineterfaz()     #Llamamos a la funcion
+        imagen_thread = threading.Thread(target=funcion_elegida)        #Un hilo para la capturadora
+        imagen_thread.daemon = True 
+        imagen_thread.start()
+        ineterfaz()  
 
 
     #Eliminamos las ultimas filas del csv para que no aparezca ruido del menu al finalizar

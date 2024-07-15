@@ -7,6 +7,8 @@ from Xlib.ext import xtest
 import threading
 import time
 from datetime import datetime
+import subprocess
+from pynput import keyboard
 
 # Globales Ventana
 cod_window = None
@@ -27,6 +29,10 @@ stop_event = threading.Event()
 #Intervalo de tiempo entre captura de imagenes
 intervalo_captura = None
 resolucion_pantalla = [None,None]
+
+teclas_movimiento = 2
+num_pulsaciones_01 = 0
+num_pulsaciones_00 = 0
 
 # Función para presionar teclas 'W' y 'Shift_L' usando Xlib
 def press_keys_xlib():
@@ -53,6 +59,44 @@ def press_keys_xlib():
         xtest.fake_input(d, X.KeyRelease, keycode_w)
         xtest.fake_input(d, X.KeyRelease, keycode_shift_l)
         d.sync()
+
+
+class MovimientoTeclas():
+        
+    def move_mouse(self, x, y):
+        subprocess.run(['xdotool', 'mousemove_relative', '--', str(x), str(y)])
+
+    def on_press(self, key):
+        global get_Finalizacion
+        global key_thread , stop_event
+        try:
+            if key == keyboard.Key.up:
+                pass
+            elif key == keyboard.Key.down:
+                subprocess.run(['xdotool', 'key', 'v']) 
+            elif key == keyboard.Key.left:
+                self.move_mouse(-500, 0)  # Mover a la izquierda
+            elif key == keyboard.Key.right:
+                self.move_mouse(500, 0)  # Mover a la derecha
+            elif key.char == 'n':
+                get_Finalizacion = True
+                # Detener el hilo de presionar teclas
+                stop_event.set()
+                key_thread.join()
+                print("Finalizando programa...")
+                return False  # Esto detendrá el listener
+        except AttributeError:
+            pass
+
+    def on_release(self, key):
+        pass
+
+
+def teclas_direccion_movimiento_pantalla():
+    movimientos = MovimientoTeclas()
+    # Start listening to the keyboard events
+    with keyboard.Listener(on_press=movimientos.on_press, on_release=movimientos.on_release) as listener:
+        listener.join()
 
 
 #Hilo que presiona teclas (w+shift)

@@ -1,11 +1,12 @@
 from capturadoras.capturadora_utils import *
 import tensorflow as tf
+import subprocess
 from tensorflow.keras.models import load_model
 
 
 modelo_mapa = None
 
-def configuracion_gpu_keras(self,modelo):
+def configuracion_gpu_keras(modelo):
     global modelo_mapa
     # Configurar para usar la GPU
     gpus = tf.config.list_physical_devices('GPU')
@@ -35,28 +36,42 @@ class CapturadoraAutonoma(Capturadora):
     def prediccion_img_mapa(self):
         global modelo_mapa
         # Normalizar cada imagen en la lista
-        lista_imagenes_normalizadas = []
+        lista_mapa_normalizado = []
+        lista_pov_normalizado = []
         #Normalizamos imagenes
-        for imagen in self.lista_img_mini:
-            imagen_normalizada = imagen / 255.0
-            lista_imagenes_normalizadas.append(imagen_normalizada)
+        for img_mapa, img_pov in zip(self.lista_img_mini,self.lista_img_pov):
+            img_mapa_normalizada = img_mapa / 255.0
+            img_pov_normalizada = img_pov / 255.0
+            lista_mapa_normalizado.append(img_mapa_normalizada)
+            lista_pov_normalizado.append(img_pov_normalizada)
 
         # Convertir la lista de imágenes normalizadas de nuevo a un array de NumPy
-        lista_imagenes_normalizadas = np.array(lista_imagenes_normalizadas)
+        lista_mapa_normalizado = np.array(lista_mapa_normalizado)
+        lista_pov_normalizado = np.array(lista_pov_normalizado)
+
         # Expandir las dimensiones para que sea compatible con la dimension del batch
-        lista_imagenes_normalizadas = np.expand_dims(lista_imagenes_normalizadas, axis=0)
+        lista_mapa_normalizado = np.expand_dims(lista_mapa_normalizado, axis=0)
+        lista_pov_normalizado = np.expand_dims(lista_pov_normalizado, axis=0)
+
+        # Crear un array de NumPy que contenga los dos arrays anteriores
+        merge_array = [lista_mapa_normalizado, lista_pov_normalizado]
 
         # Hacer predicciones de el grupo de imagenes
-        prediccion_modelo = modelo_mapa.predict(lista_imagenes_normalizadas)
-        #Convertimos las predicciones a int64
-        prediccion_modelo = prediccion_modelo.astype(np.int64)
-        return prediccion_modelo
+        prediccion_modelo = modelo_mapa.predict(merge_array)
+        # Convertir las probabilidades a etiquetas de clase
+        predicted_classes = np.argmax(prediccion_modelo, axis=1)
+        return predicted_classes
     
 
-    def mover_raton_prediccion(self,delta_x, delta_y):
-        mouse = Controller()
-        mouse.move(delta_x, delta_y)
-        print(f"Ratón movido a: {delta_x}, {delta_y}")
+    def mover_raton_prediccion(self,movimiento):
+        if movimiento == 0:
+            print("Izquierda")
+            subprocess.run(['xdotool', 'mousemove_relative', '--', str(-500), str(0)])
+        elif movimiento == 1 :
+            print("Derecha")
+            subprocess.run(['xdotool', 'mousemove_relative', '--', str(500), str(0)])
+        elif movimiento == 2 :
+            print("Avanza")
     
     def comprobar_movimineto(self):
 
@@ -150,7 +165,7 @@ class CapturadoraAutonoma(Capturadora):
             self.lista_img_mini[i] = img_mini_mapa
             self.lista_img_pov[i] = img_np
             #Pausa entre capturas
-            time.sleep(0.2)
+            time.sleep(0.01)
         print("----------------------------") 
 
 
@@ -173,9 +188,9 @@ class CapturadoraAutonoma(Capturadora):
             self.guardar_modo_manual()
 
         #Realizamos predicciones sobre el mapa
-        #prediccion_movimineto = self.prediccion_img_mapa()
+        prediccion_movimineto = self.prediccion_img_mapa()
         #Ejecutamos la accion
-        #self.mover_raton_prediccion(int(prediccion_movimineto[0][0]),int(prediccion_movimineto[0][1]))
+        self.mover_raton_prediccion(int(prediccion_movimineto))
 
         #Enviamos las imagenes a la interfaz grafica
         comun_file.cola_imagenes_map.put(self.lista_img_mini)
