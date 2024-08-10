@@ -1,5 +1,6 @@
 import tkinter as tk
 from Xlib import display
+import comun_file
 
 listbox = None
 scrollbar = None
@@ -70,6 +71,7 @@ def interfaz_selccion_ventana():
     global frame
     global label
     global root
+    global sprint_check , move_check
 
     # Crear la ventana principal
     root = tk.Tk()
@@ -95,6 +97,19 @@ def interfaz_selccion_ventana():
     label_tx_01.pack()
     label_tx_02.pack()
     label_tx_03.pack()
+
+    comun_file.sprint_check = tk.BooleanVar()
+    comun_file.move_check = tk.BooleanVar()
+    comun_file.mapa_check = tk.BooleanVar()
+
+    checkbox = tk.Checkbutton(frame, text="Quitar Sprint Automatico", variable=comun_file.sprint_check)
+    checkbox.pack(side=tk.LEFT)
+
+    checkbox_02 = tk.Checkbutton(frame, text="Quitar Teclas Movimiento", variable=comun_file.move_check)
+    checkbox_02.pack(side=tk.LEFT)
+
+    checkbox_03 = tk.Checkbutton(frame, text="Quitar Mini_Mapa", variable=comun_file.mapa_check)
+    checkbox_03.pack(side=tk.LEFT)
     
     boton02 = tk.Button(frame02, text="Grabación", command=boton_modo_grabacion , font=("Arial", 16) ,width=20, height=7, bg="grey", fg="white")
     boton02.pack(side=tk.LEFT, padx=5)

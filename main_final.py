@@ -24,17 +24,35 @@ csv_pov = None
 def bucle_capturadora_grabacion():
     global csv_mini , csv_pov
 
-    csv_mini = 'datos/grabacion/datos_bo3_minimapa_03.csv'
-    csv_pov = 'datos/grabacion/datos_bo3_pov_03.csv'
+    #Comprobamos si existen las carpetas
+    if not os.path.exists('datos/grabacion/pov') and not os.path.exists('datos/grabacion/mini_mapa'):
+        os.makedirs('datos/grabacion/pov')
+        os.makedirs('datos/grabacion/mini_mapa')
+        print("Carpetas creada ...")
+
+    #Cambiamos el archivo dependiendo de lo que se seleccione en el selector de ventanas
+    if comun_file.mapa_check == False :
+        csv_mini = 'datos/grabacion/datos_bo3_minimapa_03.csv'
+        csv_pov = 'datos/grabacion/datos_bo3_pov_03.csv'
+    else :
+        csv_mini = 'datos/grabacion/datos_subway_mini.csv'
+        csv_pov = 'datos/grabacion/datos_subway_pov.csv'
 
     #Esperamos 5 segundos hasta que el usuario se prepara
     time.sleep(5)
 
-    #Hilo que hace el movimiento de pantalla con las teclas de direccion
     teclas_direccion = threading.Thread(target=comun_file.teclas_direccion_movimiento_pantalla)
-    #Iniciar hilo para mantener las teclas presionadas
-    comun_file.key_thread.start()
-    teclas_direccion.start()
+    
+    if comun_file.move_check.get() == False:
+        print("Move OFF")
+        #Iniciar hilo para mantener las teclas presionadas
+        comun_file.key_thread.start()
+
+    if comun_file.sprint_check.get() == False:
+        print("Sprint OFF")
+        #Hilo que hace el movimiento de pantalla con las teclas de direccion
+        teclas_direccion.start()
+    
 
     capturadora = capturadora_grabacion_V2.CapturadoraGrabacion(comun_file.cod_window,csv_mini,csv_pov)
     #Bucle hasta que la interfaz grafica da la orden de finalizacion
@@ -42,9 +60,13 @@ def bucle_capturadora_grabacion():
         capturadora.run()
         #capturadora.vaciar_memoria()
     
-    #Finalizamos el proceso
-    teclas_direccion.join()
-    comun_file.key_thread.join()
+    if comun_file.sprint_check.get() == False:
+        #Finalizamos el proceso de las teclas
+        teclas_direccion.join()
+    
+    if comun_file.move_check.get() == False:
+        #Finalizamos el proceso del sprint
+        comun_file.key_thread.join()
 
 
 

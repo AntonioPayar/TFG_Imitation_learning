@@ -29,18 +29,24 @@ class CapturadoraGrabacion(Capturadora):
             tecla = 0
         elif key == keyboard.Key.right:
             tecla = 1
+        elif key == keyboard.Key.up:
+            tecla = 3
+        elif key == keyboard.Key.down:
+            tecla = 4
+        elif key == keyboard.Key.f1:
+            comun_file.get_Finalizacion = True
+            return 
         
         self.key_presses.append(tecla)
 
 
     def get_screenshot(self):
 
+        if comun_file.get_Finalizacion == True :
+            return
+
         # Limpiar key_presses para cada ciclo de main
         self.key_presses.clear()
-
-        # Iniciar el listener del teclado
-        listener = keyboard.Listener(on_press=self.on_press)
-        listener.start()
 
         try:
             for i in range(5):
@@ -72,6 +78,21 @@ class CapturadoraGrabacion(Capturadora):
                 
             print("----------------------------")
 
+            # Iniciar el listener del teclado después de capturar las imágenes
+            listener = keyboard.Listener(on_press=self.on_press)
+            listener.start()
+
+            # Usar un temporizador para detener el listener después de un tiempo
+            def stop_listener():
+                listener.stop()
+
+            # Por ejemplo, escuchamos las teclas por 2 segundos
+            timer = threading.Timer(0.85, stop_listener)
+            timer.start()
+
+            # Esperar a que el listener se detenga
+            timer.join()
+
 
             counts = Counter(self.key_presses)
             array_movimiento = []
@@ -88,9 +109,7 @@ class CapturadoraGrabacion(Capturadora):
                 for number, count in counts.items():
                     if number != 2:
                         array_movimiento.append([int(count),int(number),int(0)])
-                        
-                        
-            
+                             
             if len(array_movimiento) == 1:
                 print(array_movimiento[0])
 
@@ -101,12 +120,24 @@ class CapturadoraGrabacion(Capturadora):
                 # Guardamos label en csv
                 self.preparar_cola_interfaz()
                 self.vaciar_memoria()
+            elif len(array_movimiento) == 0:
+                print("Forward")
+
+                self.lista_movimientos[0] = int(1)
+                self.lista_movimientos[1] = int(2)
+                self.lista_movimientos[2] = int(0)
+
+                # Guardamos label en csv
+                self.preparar_cola_interfaz()
+                self.vaciar_memoria()
 
         except KeyboardInterrupt:
+            comun_file.get_Finalizacion = True
             print("Deteniendo el script...")
 
         finally:
-            listener.stop()  # Asegurar que el listener del teclado se detenga
+            if listener.running:
+                listener.stop()
 
 
     def run(self):

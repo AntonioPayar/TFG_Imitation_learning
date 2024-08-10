@@ -9,11 +9,17 @@ import time
 from datetime import datetime
 import subprocess
 from pynput import keyboard
+import tkinter as tk
 
 # Globales Ventana
 cod_window = None
 DF_mini = None
 DF_pov = None
+
+# Variable que almacenará el estado del Checkbutton
+sprint_check = None
+move_check = None
+mapa_check = None
 
 # Variable para control cerrar ventana
 get_Finalizacion = False
@@ -78,7 +84,7 @@ class MovimientoTeclas():
                 self.move_mouse(-500, 0)  # Mover a la izquierda
             elif key == keyboard.Key.right:
                 self.move_mouse(500, 0)  # Mover a la derecha
-            elif key.char == 'n':
+            elif key.char == 'n' or key.char == 'f1':
                 get_Finalizacion = True
                 # Detener el hilo de presionar teclas
                 stop_event.set()

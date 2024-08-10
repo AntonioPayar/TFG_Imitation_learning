@@ -80,7 +80,11 @@ class Capturadora:
 
                 # Recortamos el mapa a img pov
                 width, height = screenshot.size
-                img_pov = screenshot.crop((0, 280, width, height))
+                
+                if comun_file.mapa_check == False:  # Si queremos mini_mapa cortamos la imagen para quitarlo del pov
+                    img_pov = screenshot.crop((0, 280, width, height))
+                else:
+                    img_pov = screenshot.crop((0, 10, width, height))
                 
                 #Creamos la imagen mapa
                 img_mini_mapa = np.array(screenshot)
@@ -92,9 +96,10 @@ class Capturadora:
                 img_pov = cv2.cvtColor(img_pov, cv2.COLOR_RGB2BGR)
 
                 img_mini_mapa = cv2.resize(img_mini_mapa, (300, 225))
-                img_pov = cv2.resize(img_pov, (300, 225))
-                #img_mini_mapa = cv2.resize(img_mini_mapa, (195, 135))
-                #img_pov = cv2.resize(img_pov, (640, 360))
+                if comun_file.mapa_check == False : 
+                    img_pov = cv2.resize(img_pov, (300, 225))
+                else : 
+                    img_pov = cv2.resize(img_pov, (600, 450))
 
             except Exception as e:
                 print(f"Error general en el intento : {e}")
