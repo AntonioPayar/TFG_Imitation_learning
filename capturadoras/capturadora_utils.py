@@ -99,7 +99,7 @@ class Capturadora:
                 if comun_file.mapa_check == False : 
                     img_pov = cv2.resize(img_pov, (300, 225))
                 else : 
-                    img_pov = cv2.resize(img_pov, (600, 450))
+                    img_pov = cv2.resize(img_pov, (256, 144))
 
             except Exception as e:
                 print(f"Error general en el intento : {e}")

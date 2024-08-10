@@ -87,7 +87,7 @@ class CapturadoraGrabacion(Capturadora):
                 listener.stop()
 
             # Por ejemplo, escuchamos las teclas por 2 segundos
-            timer = threading.Timer(0.85, stop_listener)
+            timer = threading.Timer(0.45, stop_listener)
             timer.start()
 
             # Esperar a que el listener se detenga
