@@ -107,7 +107,7 @@ class CapturadoraGrabacion(Capturadora):
 
             elif len(counts.items()) == 2 :
                 for number, count in counts.items():
-                    if number != 2:
+                    if number != 2 :
                         array_movimiento.append([int(count),int(number),int(0)])
                              
             if len(array_movimiento) == 1:
