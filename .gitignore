@@ -2,5 +2,6 @@
 **/modelos/modelo_merge.h5
 **/modelos/modelos_entrenados
 **/modelos/modelo_merge_checkpoint.h5
+**/modelo_merge_subway.h5
 **/__pycache__
 **cod.zip
