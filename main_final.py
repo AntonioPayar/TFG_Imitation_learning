@@ -3,7 +3,7 @@ from interfaces import interfaz_seleccion_ventana
 from interfaces import interfaz_grabacion
 from interfaces import interfaz_autonomo
 from capturadoras import capturadora_autonoma , capturadora_grabacion ,capturadora_grabacion_V2
-
+import sqlite3
 import pandas as pd
 import os
 import threading
@@ -12,9 +12,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 modelo_mapa = "modelos/modelos_entrenados/modelo_todo_0.68_.h5"
-csv_mini = None
-csv_pov = None
-
 
 """
     Funcion encargada de ejecutar el bucle de grabacion
@@ -22,21 +19,13 @@ csv_pov = None
 """
 
 def bucle_capturadora_grabacion():
-    global csv_mini , csv_pov
+    global sqlite_db
 
     #Comprobamos si existen las carpetas
     if not os.path.exists('datos/grabacion/pov') and not os.path.exists('datos/grabacion/mini_mapa'):
         os.makedirs('datos/grabacion/pov')
         os.makedirs('datos/grabacion/mini_mapa')
-        print("Carpetas creada ...")
-
-    #Cambiamos el archivo dependiendo de lo que se seleccione en el selector de ventanas
-    if comun_file.mapa_check == False :
-        csv_mini = 'datos/grabacion/datos_bo3_minimapa_03.csv'
-        csv_pov = 'datos/grabacion/datos_bo3_pov_03.csv'
-    else :
-        csv_mini = 'datos/grabacion/datos_subway_mini.csv'
-        csv_pov = 'datos/grabacion/datos_subway_pov.csv'
+        print("Carpetas creada ...")     
 
     #Esperamos 5 segundos hasta que el usuario se prepara
     time.sleep(5)
@@ -53,20 +42,30 @@ def bucle_capturadora_grabacion():
         #Hilo que hace el movimiento de pantalla con las teclas de direccion
         teclas_direccion.start()
     
+    try :
+        capturadora = capturadora_grabacion_V2.CapturadoraGrabacion(comun_file.cod_window,"datos/grabacion/base_datos_cod.db")
+        #Bucle hasta que la interfaz grafica da la orden de finalizacion
+        while comun_file.get_Finalizacion == False:
+            capturadora.run()
+            #capturadora.vaciar_memoria()
+        
+        if comun_file.sprint_check.get() == False:
+            #Finalizamos el proceso de las teclas
+            teclas_direccion.join()
+        
+        if comun_file.move_check.get() == False:
+            #Finalizamos el proceso del sprint
+            comun_file.key_thread.join()
 
-    capturadora = capturadora_grabacion_V2.CapturadoraGrabacion(comun_file.cod_window,csv_mini,csv_pov)
-    #Bucle hasta que la interfaz grafica da la orden de finalizacion
-    while comun_file.get_Finalizacion == False:
-        capturadora.run()
-        #capturadora.vaciar_memoria()
-    
-    if comun_file.sprint_check.get() == False:
-        #Finalizamos el proceso de las teclas
-        teclas_direccion.join()
-    
-    if comun_file.move_check.get() == False:
-        #Finalizamos el proceso del sprint
-        comun_file.key_thread.join()
+    finally:
+        if comun_file.sprint_check.get() == False:
+            #Finalizamos el proceso de las teclas
+            teclas_direccion.join()
+        
+        if comun_file.move_check.get() == False:
+            #Finalizamos el proceso del sprint
+            comun_file.key_thread.join()
+
 
 
 
@@ -139,6 +138,7 @@ if __name__ == '__main__':
         ineterfaz()  
 
 
+"""
     #Eliminamos las ultimas filas del csv para que no aparezca ruido del menu al finalizar
     if os.path.isfile(csv_mini) and os.path.isfile(csv_pov):
 
@@ -154,3 +154,4 @@ if __name__ == '__main__':
         comun_file.DF_mini.to_csv(csv_mini, mode='a', header=False, index=False)
         comun_file.DF_pov.to_csv(csv_pov, mode='a', header=False, index=False)
         print("Archivos guardados...")
+"""

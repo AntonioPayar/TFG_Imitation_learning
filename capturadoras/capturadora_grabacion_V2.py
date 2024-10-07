@@ -9,7 +9,6 @@ import cv2
 import pandas as pd
 import os
 from datetime import datetime
-import csv
 from pynput import keyboard
 from collections import Counter
 
@@ -18,8 +17,8 @@ listener = None
 
 
 class CapturadoraGrabacion(Capturadora):
-    def __init__(self,monitor,csv_mini,csv_pov):
-        super().__init__(monitor,csv_mini,csv_pov)
+    def __init__(self,monitor,db):
+        super().__init__(monitor,db)
         self.key_presses = []
     
     def on_press(self,key):
@@ -33,8 +32,16 @@ class CapturadoraGrabacion(Capturadora):
             tecla = 3
         elif key == keyboard.Key.down:
             tecla = 4
+            self.guardar_sqlite()
+            
+            self.ID = self.ID + 1
+            self.orden = 0
+            self.df_pov = pd.DataFrame()
+            self.df_mapa = pd.DataFrame()
         elif key == keyboard.Key.f1:
             comun_file.get_Finalizacion = True
+
+            print("Saliendo 01")             
             return 
         
         self.key_presses.append(tecla)
@@ -43,12 +50,15 @@ class CapturadoraGrabacion(Capturadora):
     def get_screenshot(self):
 
         if comun_file.get_Finalizacion == True :
+            print("Saliendo...")
             return
 
         # Limpiar key_presses para cada ciclo de main
         self.key_presses.clear()
 
         try:
+            self.orden = self.orden + 1
+
             for i in range(5):
                 self.posicion_i = i
                 
@@ -80,6 +90,11 @@ class CapturadoraGrabacion(Capturadora):
 
             # Iniciar el listener del teclado después de capturar las imágenes
             listener = keyboard.Listener(on_press=self.on_press)
+
+            if comun_file.get_Finalizacion == True :
+                print("Saliendo 02")
+                return
+
             listener.start()
 
             # Usar un temporizador para detener el listener después de un tiempo
