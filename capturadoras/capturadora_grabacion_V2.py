@@ -32,6 +32,7 @@ class CapturadoraGrabacion(Capturadora):
             tecla = 3
         elif key == keyboard.Key.down:
             tecla = 4
+            print("----------FIN SERIE----------")
             self.guardar_sqlite()
             
             self.ID = self.ID + 1
@@ -41,7 +42,7 @@ class CapturadoraGrabacion(Capturadora):
         elif key == keyboard.Key.f1:
             comun_file.get_Finalizacion = True
 
-            print("Saliendo 01")             
+            print("Saliendo 01")          
             return 
         
         self.key_presses.append(tecla)

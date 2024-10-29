@@ -48,23 +48,26 @@ def bucle_capturadora_grabacion():
         while comun_file.get_Finalizacion == False:
             capturadora.run()
             #capturadora.vaciar_memoria()
-        
+
+        if comun_file.move_check.get() == False:
+            #Finalizamos el proceso del sprint
+            comun_file.key_thread.join()        
+
         if comun_file.sprint_check.get() == False:
             #Finalizamos el proceso de las teclas
             teclas_direccion.join()
-        
+
+    finally:
+
         if comun_file.move_check.get() == False:
             #Finalizamos el proceso del sprint
             comun_file.key_thread.join()
 
-    finally:
         if comun_file.sprint_check.get() == False:
             #Finalizamos el proceso de las teclas
             teclas_direccion.join()
         
-        if comun_file.move_check.get() == False:
-            #Finalizamos el proceso del sprint
-            comun_file.key_thread.join()
+
 
 
 
