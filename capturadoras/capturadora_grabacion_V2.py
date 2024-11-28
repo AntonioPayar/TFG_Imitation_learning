@@ -17,8 +17,8 @@ listener = None
 
 
 class CapturadoraGrabacion(Capturadora):
-    def __init__(self,monitor,db):
-        super().__init__(monitor,db)
+    def __init__(self,monitor,db,data_lake):
+        super().__init__(monitor,db,data_lake)
         self.key_presses = []
     
     def on_press(self,key):
@@ -39,13 +39,13 @@ class CapturadoraGrabacion(Capturadora):
             self.orden = 0
             self.df_pov = pd.DataFrame()
             self.df_mapa = pd.DataFrame()
-        elif key == keyboard.Key.f1:
+        elif key == keyboard.Key.esc:
             comun_file.get_Finalizacion = True
-
             print("Saliendo 01")          
-            return 
+            return True
         
         self.key_presses.append(tecla)
+        return False
 
 
     def get_screenshot(self):
@@ -61,8 +61,12 @@ class CapturadoraGrabacion(Capturadora):
             self.orden = self.orden + 1
 
             for i in range(5):
-                self.posicion_i = i
+
+                if comun_file.get_Finalizacion == True :
+                    print("Saliendo...")
+                    return
                 
+                self.posicion_i = i
                 img_mini_mapa , img_np = self.cargar_pantalla()
                 
                 # Obtiene la fecha y hora actual
@@ -70,12 +74,13 @@ class CapturadoraGrabacion(Capturadora):
                 timestamp = now.strftime("%d-%H-%M-%S-%f")
                 
                 #Creamos el nombre de las imgs
-                mini_str = f"datos/grabacion/mini_mapa/mini_mapa_{timestamp}.jpg"
-                pov_str = f"datos/grabacion/pov/pov_{timestamp}.jpg"
+                mini_str = f"{self.data_lake}/mini_mapa/mini_mapa_{timestamp}.jpg"
+                pov_str = f"{self.data_lake}/pov/pov_{timestamp}.jpg"
 
                 #Guarda las imágenes JPG
-                cv2.imwrite(mini_str, img_mini_mapa)
-                cv2.imwrite(pov_str, img_np)
+                if comun_file.save_check.get() == False:
+                    cv2.imwrite(mini_str, img_mini_mapa)
+                    cv2.imwrite(pov_str, img_np)
                            
                 #Almacenamos la localizacion de la img
                 self.lista_url_img_mini[i] = mini_str
@@ -89,26 +94,9 @@ class CapturadoraGrabacion(Capturadora):
                 
             print("----------------------------")
 
-            # Iniciar el listener del teclado después de capturar las imágenes
-            listener = keyboard.Listener(on_press=self.on_press)
-
-            if comun_file.get_Finalizacion == True :
-                print("Saliendo 02")
-                return
-
-            listener.start()
-
-            # Usar un temporizador para detener el listener después de un tiempo
-            def stop_listener():
-                listener.stop()
-
-            # Por ejemplo, escuchamos las teclas por 2 segundos
-            timer = threading.Timer(0.45, stop_listener)
-            timer.start()
-
-            # Esperar a que el listener se detenga
-            timer.join()
-
+            #Capturamos teclas 0.45 secs
+            if not self.capture_keys():
+                return  # Salir si `ESC` fue presionado
 
             counts = Counter(self.key_presses)
             array_movimiento = []
@@ -150,10 +138,26 @@ class CapturadoraGrabacion(Capturadora):
         except KeyboardInterrupt:
             comun_file.get_Finalizacion = True
             print("Deteniendo el script...")
+    
 
-        finally:
-            if listener.running:
-                listener.stop()
+
+    def capture_keys(self):
+        #Captura teclas inmediatamente después de las 5 fotos.
+        start_time = time.time()
+
+        while time.time() - start_time < 0.45:  # Limitar el tiempo de escucha a 0.45 segundos
+            with keyboard.Events() as events:  # Crear un manejador de eventos de teclado
+                event = events.get(0.45)  # Esperar un evento de teclado por un máximo de 0.45 segundos
+                if event is None:
+                    continue  # Si no hay eventos, seguir iterando
+
+                if isinstance(event, keyboard.Events.Press):  # Si se detecta una pulsación de tecla
+                    if self.on_press(event.key):  # Procesar la tecla presionada
+                        return False  # Si `ESC` es presionado, detener el programa
+
+        return True  # Si no se presiona `ESC`, continuar con el programa
+
+
 
 
     def run(self):
@@ -168,104 +172,4 @@ class CapturadoraGrabacion(Capturadora):
         comun_file.cola_imagenes_map.put(self.lista_img_mini)
         comun_file.cola_imagenes_pov.put(self.lista_img_pov)
         comun_file.cola_mov_raton.put(self.lista_movimientos)
-
-    
-    '''
-    def set_movimiento(self,tecla_pulsada):
-        self.lista_movimientos[0] = int(tecla_pulsada)
-        self.lista_movimientos[1] = int(0)
-        #print(str(dx)+" , "+str(dy))
-
-        print("Tecla -> "+str(tecla_pulsada))
-    '''
-    '''
-    def get_screenshot(self):
-
-        for i in range(5):
-            self.posicion_i = i
-            #print("Imagen..."+str(i))
-            img_mini_mapa , img_np = self.cargar_pantalla()
-
-            # Obtiene la fecha y hora actual
-            now = datetime.now()
-            timestamp = now.strftime("%d-%H-%M-%S-%f")
-
-            #Creamos el nombre de las imgs
-            mini_str = f"datos/grabacion/mini_mapa/mini_mapa_{timestamp}.jpg"
-            pov_str = f"datos/grabacion/pov/pov_{timestamp}.jpg"
-
-            #Guarda las imágenes JPG
-            #cv2.imwrite(mini_str, img_mini_mapa)
-            #cv2.imwrite(pov_str, img_np)
-
-            #Almacenamos la localizacion de la img
-            self.lista_url_img_mini[i] = mini_str
-            self.lista_url_img_pov[i] = pov_str
-            #Almacenamos la img
-            self.lista_img_mini[i] = img_mini_mapa
-            self.lista_img_pov[i] = img_np
-            #Pausa entre capturas
-            time.sleep(0.1)
-        print("----------------------------")
-        self.preparar_cola_interfaz()
-    '''
-        
-        # FUNONA PERFECTO
-    def get_mouse_movement(self,interval=0.9):
-        '''
-        disp = display.Display()
-        root = disp.screen().root
-
-        last_pos = root.query_pointer()._data
-        time.sleep(interval)
-        current_pos = root.query_pointer()._data
-
-        dx = current_pos['root_x'] - last_pos['root_x']
-        dy = current_pos['root_y'] - last_pos['root_y']
-        '''
-        
-        detectar_teclas()
-        
-        self.lista_movimientos[0] = int(comun_file.teclas_movimiento)
-        self.lista_movimientos[1] = int(0)
-
-        if comun_file.teclas_movimiento == 1:
-            print("Tecla "+str(comun_file.teclas_movimiento)+" pulsaciones "+str(comun_file.num_pulsaciones_00))
-        elif comun_file.teclas_movimiento == 0:
-            print("Tecla "+str(comun_file.teclas_movimiento)+" pulsaciones "+str(comun_file.num_pulsaciones_01))
-        
-        recargar_tecla()
-
-
-'''
-def on_press(key):
-    try:
-        if key == keyboard.Key.up:
-            comun_file.teclas_movimiento = 3
-        elif key == keyboard.Key.down:
-            print(" ")
-        elif key == keyboard.Key.left:
-            comun_file.teclas_movimiento = 0
-            comun_file.num_pulsaciones_00 = comun_file.num_pulsaciones_00 + 1
-        elif key == keyboard.Key.right:
-            comun_file.teclas_movimiento = 1
-            comun_file.num_pulsaciones_01 = comun_file.num_pulsaciones_01 + 1
-    except AttributeError:
-        # Ignorar teclas que no son de dirección
-        pass
-'''
-def recargar_tecla() :
-    comun_file.num_pulsaciones_01 = 0
-    comun_file.num_pulsaciones_00 = 0
-    comun_file.teclas_movimiento = 2
-
-
-
-def detectar_teclas():
-    global listener
-    with keyboard.Listener(on_press=on_press) as listener:
-        # Esperar 1 segundo y luego detener el listener
-        time.sleep(0.2)
-        listener.stop()
-
 

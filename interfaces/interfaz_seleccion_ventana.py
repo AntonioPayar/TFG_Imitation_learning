@@ -99,13 +99,13 @@ def interfaz_selccion_ventana():
     label_tx_03.pack()
 
     comun_file.sprint_check = tk.BooleanVar()
-    comun_file.move_check = tk.BooleanVar()
+    comun_file.save_check = tk.BooleanVar()
     comun_file.mapa_check = tk.BooleanVar()
 
     checkbox = tk.Checkbutton(frame, text="Quitar Sprint Automatico", variable=comun_file.sprint_check)
     checkbox.pack(side=tk.LEFT)
 
-    checkbox_02 = tk.Checkbutton(frame, text="Quitar Teclas Movimiento", variable=comun_file.move_check)
+    checkbox_02 = tk.Checkbutton(frame, text="No guardar Imagenes", variable=comun_file.save_check)
     checkbox_02.pack(side=tk.LEFT)
 
     checkbox_03 = tk.Checkbutton(frame, text="Quitar Mini_Mapa", variable=comun_file.mapa_check)

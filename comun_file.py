@@ -10,6 +10,8 @@ from datetime import datetime
 import subprocess
 from pynput import keyboard
 import tkinter as tk
+import os
+import sqlite3
 
 # Globales Ventana
 cod_window = None
@@ -18,7 +20,7 @@ DF_pov = None
 
 # Variable que almacenará el estado del Checkbutton
 sprint_check = None
-move_check = None
+save_check = None
 mapa_check = None
 
 # Variable para control cerrar ventana
@@ -107,3 +109,57 @@ def teclas_direccion_movimiento_pantalla():
 
 #Hilo que presiona teclas (w+shift)
 key_thread = threading.Thread(target=press_keys_xlib)
+
+
+def comprobacion_ficheros(data_lake,sql):
+
+    if not os.path.exists(data_lake):
+        os.makedirs(data_lake)
+        print("Data Lake creado ..")
+    
+    if not os.path.exists(data_lake + "/pov") and not os.path.exists(data_lake + "/mini_mapa"):
+        os.makedirs(data_lake + "/pov")
+        os.makedirs(data_lake + "/mini_mapa")
+        print("Carpetas creada ...")
+    
+    if not os.path.exists(sql):
+        print("SQLite creado ..")
+        conn = sqlite3.connect(sql)
+        cursor = conn.cursor()
+        cursor.execute('''
+        CREATE TABLE series_de_tiempo (
+            id INTEGER PRIMARY KEY,
+            nombre CHAR(100) NOT NULL
+        );
+        ''')
+
+        cursor.execute('''
+        CREATE TABLE videos_pov (
+            id INTEGER,
+            orden INTEGER NOT NULL,
+            pov_01 CHAR(100),
+            pov_02 CHAR(100),
+            pov_03 CHAR(100),
+            pov_04 CHAR(100),
+            pov_05 CHAR(100),
+            etiqueta CHAR(10),
+            FOREIGN KEY (id) REFERENCES series_de_tiempo(id)
+        );
+        ''')
+
+        cursor.execute('''
+        CREATE TABLE videos_mapa (
+            id INTEGER,
+            orden INTEGER NOT NULL,
+            mapa_01 CHAR(100),
+            mapa_02 CHAR(100),
+            mapa_03 CHAR(100),
+            mapa_04 CHAR(100),
+            mapa_05 CHAR(100),
+            etiqueta CHAR(10),
+            FOREIGN KEY (id) REFERENCES series_de_tiempo(id)
+        );
+        ''')
+
+        conn.commit()
+        conn.close()

@@ -17,9 +17,10 @@ import comun_file
 lock = threading.Lock()
 
 class Capturadora:
-    def __init__(self,monitor,db):
+    def __init__(self,monitor,db,DATALAKE):
         self.monito = monitor
         self.db = db
+        self.data_lake = DATALAKE
         self.ID = None
         self.df_pov = pd.DataFrame()
         self.df_mapa = pd.DataFrame()
@@ -35,7 +36,7 @@ class Capturadora:
         self.lista_movimientos = [None,None,None]
     
     def ultimo_id(self):
-        conexion = sqlite3.connect('datos/grabacion/base_datos_cod.db')
+        conexion = sqlite3.connect(self.db)
         # Crear un cursor para interactuar con la base de datos
         cursor = conexion.cursor()  
         cursor.execute("SELECT MAX(id) FROM series_de_tiempo")

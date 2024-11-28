@@ -13,8 +13,8 @@ import csv
 
 
 class CapturadoraGrabacion(Capturadora):
-    def __init__(self,monitor,csv_mini,csv_pov):
-        super().__init__(monitor,csv_mini,csv_pov)
+    def __init__(self,monitor,db,data_lake):
+        super().__init__(monitor,db,data_lake)
 
     # Función principal para ejecutar en hilos
     def run(self):
@@ -48,8 +48,8 @@ class CapturadoraGrabacion(Capturadora):
             timestamp = now.strftime("%d-%H-%M-%S-%f")
 
             #Creamos el nombre de las imgs
-            mini_str = f"datos/grabacion/mini_mapa/mini_mapa_{timestamp}.jpg"
-            pov_str = f"datos/grabacion/pov/pov_{timestamp}.jpg"
+            mini_str = f"{self.data_lake}/mini_mapa/mini_mapa_{timestamp}.jpg"
+            pov_str = f"{self.data_lake}/pov/pov_{timestamp}.jpg"
 
             #Guarda las imágenes JPG
             #cv2.imwrite(mini_str, img_mini_mapa)
